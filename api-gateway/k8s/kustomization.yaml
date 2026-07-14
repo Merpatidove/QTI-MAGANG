@@ -1,0 +1,11 @@
+apiVersion: kustomize.config.k8s.io/v1beta1
+kind: Kustomization
+
+resources:
+  - deployment.yaml
+  - service.yaml
+
+images:
+  - name: api-gateway
+    newName: ghcr.io/merpatidove/qti-api-gateway
+    newTag: latest
