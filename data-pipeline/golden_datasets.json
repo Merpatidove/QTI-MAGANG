@@ -1,0 +1,480 @@
+{
+  "tickets": [
+    {
+      "ticket_id": "TKT-1001",
+      "raw_text": "[2026-07-10 11:20:00] production.ERROR: SQLSTATE[HY000] [2002] Connection timed out (SQL: select * from `users` where `users`.`deleted_at` is null order by `created_at` desc limit 25 offset 0) {\"exception\":\"[object] (Illuminate\\\\Database\\\\QueryException(code: 2002): SQLSTATE[HY000] [2002] Connection timed out at /var/www/eventin/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:70)\"}\n#0 /var/www/eventin/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php(46): PDO->__construct('mysql:host=db-prod-03.internal;port=3306;dbname=eventin_prod', 'app_user', '********', Array)\n#1 /var/www/eventin/vendor/laravel/framework/src/Illuminate/Database/Connectors/MySqlConnector.php(24): Illuminate\\Database\\Connectors\\Connector->createConnection('mysql:host=db-prod-03.internal...', Array, Array)\n#2 /var/www/eventin/app/Http/Controllers/UsersController.php(31): Illuminate\\Database\\Connection->select()\nConnection pool status at time of failure: active=98/100, idle=0, wait_queue=14",
+      "project_tags": [
+        "laravel",
+        "mysql",
+        "database",
+        "eventin"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1002",
+      "raw_text": "[2026-07-10 12:04:00] billing-service-worker-1 | ERROR: failed to write to /var/www/html/storage/logs/laravel.log: Permission denied\n$ docker exec billing-service-worker-1 ls -la /var/www/html/storage/logs\ndrwxr-xr-x 2 root   root   4096 Jul 10 08:02 .\n-rw-r--r-- 1 root   root      0 Jul 10 08:02 laravel.log\nContainer runs as uid=1000(www-data), host bind-mount owned by uid=0(root) after volume was recreated on new host.\nImage: registry.internal/billing-service:latest",
+      "project_tags": [
+        "docker",
+        "devops",
+        "billing-service"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1003",
+      "raw_text": "$ docker compose ps\neventin-worker-1   Restarting (1) 4 seconds ago\neventin-db-1       Up 10 minutes (healthy)\n[2026-07-10 14:19:00] worker | SQLSTATE[HY000] [2002] No route to host — waiting for `db` service (depends_on: condition: service_healthy)\n[2026-07-10 14:19:00] worker | Retrying database connection (attempt 14/15)...\n[2026-07-10 14:19:00] worker | Max connection attempts reached, exiting with code 143\nSuspected cause: `depends_on` healthcheck on `db` passes before MySQL finishes InnoDB crash recovery on restart.",
+      "project_tags": [
+        "docker",
+        "docker-compose",
+        "mysql",
+        "eventin"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1004",
+      "raw_text": "$ docker ps -a | grep spk-saw-umkm-worker-1\nspk-saw-umkm-worker-1   registry.internal/spk-saw-umkm:1.3.2   Up 2 minutes (unhealthy)   0.0.0.0:8080->80/tcp\n[2026-07-10 13:43:00] Health check failed: curl: (7) Failed to connect to localhost port 80: Connection refused\nnginx error.log:\n  [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)\n  nginx: [emerg] still could not bind()\nNote: two replicas of spk-saw-umkm-worker-1 appear to be racing for the same host port after a `docker compose up --scale` change.",
+      "project_tags": [
+        "docker",
+        "devops",
+        "spk-saw-umkm"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1005",
+      "raw_text": "[2026-07-10 10:48:00] staging.ERROR: SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded; try restarting transaction (SQL: alter table `attendance_logs` add `synced_at` timestamp null after `updated_at`)\nStack: Illuminate\\Database\\Schema\\Blueprint->build() -> Connection->statement() -> PDOStatement->execute()\nCommand run: php artisan migrate --force on host db-staging-01.internal\nNote from reporter: migration has been stuck for ~6 minutes, another long-running report query is holding a lock on `attendance_logs`.",
+      "project_tags": [
+        "laravel",
+        "mysql",
+        "database",
+        "inventory-api"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1006",
+      "raw_text": "$ git push origin HEAD:refs/heads/bugfix/pdf-export\nTo git.internal:presensi-akademik.git\n ! [rejected]        HEAD -> bugfix/pdf-export (non-fast-forward)\nerror: failed to push some refs to 'git.internal:presensi-akademik.git'\nhint: Updates were rejected because a pushed branch tip is behind its remote counterpart.\n$ git status\nHEAD detached at a9f31de\nReporter note: rangga.a checked out a specific commit to test a hotfix and forgot to create a branch before making changes.",
+      "project_tags": [
+        "git",
+        "version-control",
+        "presensi-akademik"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1007",
+      "raw_text": "$ docker compose ps\npresensi-akademik-worker-1   Restarting (1) 4 seconds ago\npresensi-akademik-db-1       Up 10 minutes (healthy)\n[2026-07-10 13:01:00] worker | SQLSTATE[HY000] [2002] No route to host — waiting for `db` service (depends_on: condition: service_healthy)\n[2026-07-10 13:01:00] worker | Retrying database connection (attempt 14/15)...\n[2026-07-10 13:01:00] worker | Max connection attempts reached, exiting with code 1\nSuspected cause: `depends_on` healthcheck on `db` passes before MySQL finishes InnoDB crash recovery on restart.",
+      "project_tags": [
+        "docker",
+        "docker-compose",
+        "mysql",
+        "presensi-akademik"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1008",
+      "raw_text": "[2026-07-10 10:27:00] local.ERROR: SQLSTATE[HY000] [1040] Too many connections (Connection: mysql, SQL: insert into `attendance_logs` (`user_id`, `status`, `updated_at`) values (?, ?, ?)) {\"userId\":null,\"exception\":\"[object] (PDOException(code: 1040): SQLSTATE[HY000] [1040] Too many connections at /var/www/eventin/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:70)\"}\nmysqld_stat: Threads_connected: 151 / max_connections=150\nReported by: developer while running `php artisan queue:work --queue=emails` locally against shared staging DB db-prod-01.internal.",
+      "project_tags": [
+        "laravel",
+        "mysql",
+        "database",
+        "eventin"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1009",
+      "raw_text": "$ git rebase origin/main\nAuto-merging app/Models/User.php\nCONFLICT (content): Merge conflict in app/Models/User.php\nerror: could not apply a1b2c3d... feat: add livewire checkout component\nResolve all conflicts manually, mark them as resolved with \"git add/rm <conflicted_files>\", then run \"git rebase --continue\".\n$ git diff --name-only --diff-filter=U\napp/Models/User.php",
+      "project_tags": [
+        "git",
+        "version-control",
+        "billing-service"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1010",
+      "raw_text": "$ git merge origin/develop\nAuto-merging composer.lock\nCONFLICT (content): Merge conflict in composer.lock\nAutomatic merge failed; fix conflicts and then commit the result.\n$ git status\nOn branch hotfix/auth-guard\nYou have unmerged paths.\n  both modified:   composer.lock\nReporter note: johan.p and rangga.a both edited the same route group block within the last hour.",
+      "project_tags": [
+        "git",
+        "version-control",
+        "presensi-akademik"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1011",
+      "raw_text": "$ docker inspect eventin-nginx-1 --format='{{.State.Status}} {{.State.ExitCode}} {{.State.OOMKilled}}'\nexited 137 true\n[2026-07-10 12:38:00] kernel: Out of memory: Killed process 18422 (eventin-nginx-1) total-vm:1288944kB, anon-rss:512200kB\ndocker-compose logs --tail=20 eventin-nginx-1:\n  php-fpm: pm.max_children reached, spawning workers too fast\n  Fatal error: Allowed memory size of 536870912 bytes exhausted while processing large CSV export job\nContainer restart count in last hour: 6 (crash loop)",
+      "project_tags": [
+        "docker",
+        "devops",
+        "eventin"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1012",
+      "raw_text": "$ git merge feature/ranking-table\nwarning: LF will be replaced by CRLF in composer.lock.\nCONFLICT (content): Merge conflict in composer.lock\n$ git diff composer.lock | head -5\ndiff --git a/composer.lock b/composer.lock\nindex 3f9a1c2..7bd0e44 100644\nReporter note: rangga.a is on Windows with core.autocrlf=true, dwi.k committed from WSL with LF endings — every line shows as changed.",
+      "project_tags": [
+        "git",
+        "version-control",
+        "inventory-api"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1013",
+      "raw_text": "$ docker ps -a | grep billing-service-app-1\nbilling-service-app-1   registry.internal/billing-service:1.3.2   Up 2 minutes (unhealthy)   0.0.0.0:8080->80/tcp\n[2026-07-10 12:48:00] Health check failed: curl: (7) Failed to connect to localhost port 80: Connection refused\nnginx error.log:\n  [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)\n  nginx: [emerg] still could not bind()\nNote: two replicas of billing-service-app-1 appear to be racing for the same host port after a `docker compose up --scale` change.",
+      "project_tags": [
+        "docker",
+        "devops",
+        "billing-service"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1014",
+      "raw_text": "$ git pull origin release/1.4.0\nAuto-merging package-lock.json\nCONFLICT (content): Merge conflict in package-lock.json\n<<<<<<< HEAD\n    \"laravel/framework\": {\"version\": \"v11.9.0\"},\n=======\n    \"laravel/framework\": {\"version\": \"v11.11.2\"},\n>>>>>>> origin/release/1.4.0\nReporter note: two teammates ran `composer update` / `npm install` independently before pushing.",
+      "project_tags": [
+        "git",
+        "dependency-management",
+        "eventin"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1015",
+      "raw_text": "$ git pull origin hotfix/auth-guard\nAuto-merging app/Models/User.php\nCONFLICT (content): Merge conflict in app/Models/User.php\n<<<<<<< HEAD\n    \"laravel/framework\": {\"version\": \"v11.9.0\"},\n=======\n    \"laravel/framework\": {\"version\": \"v11.11.2\"},\n>>>>>>> origin/hotfix/auth-guard\nReporter note: two teammates ran `composer update` / `npm install` independently before pushing.",
+      "project_tags": [
+        "git",
+        "dependency-management",
+        "billing-service"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1016",
+      "raw_text": "$ docker build -t registry.internal/hite-core:1.4.0-rc1 .\nStep 9/14 : RUN composer install --no-dev --optimize-autoloader\n ---> Running in 7fa2c9e1d3b4\nIn Fatal error: Uncaught Error: Class \"Symfony\\Component\\Process\\Process\" not found in /app/vendor/composer/installed.php\nComposer version mismatch: lock file generated with composer 2.7, image ships composer 2.2 (apt cache stale).\nBuild exited with code 143, reported blocking CI pipeline for branch `feature/checkout-flow`.",
+      "project_tags": [
+        "docker",
+        "ci-cd",
+        "composer",
+        "hite-core"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1017",
+      "raw_text": "[2026-07-10 08:31:00] staging.ERROR: SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded; try restarting transaction (SQL: alter table `users` add `synced_at` timestamp null after `updated_at`)\nStack: Illuminate\\Database\\Schema\\Blueprint->build() -> Connection->statement() -> PDOStatement->execute()\nCommand run: php artisan migrate --force on host db-prod-03.internal\nNote from reporter: migration has been stuck for ~6 minutes, another long-running report query is holding a lock on `users`.",
+      "project_tags": [
+        "laravel",
+        "mysql",
+        "database",
+        "billing-service"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1018",
+      "raw_text": "$ git merge origin/develop\nAuto-merging database/migrations/2026_07_01_add_status_column.php\nCONFLICT (content): Merge conflict in database/migrations/2026_07_01_add_status_column.php\nAutomatic merge failed; fix conflicts and then commit the result.\n$ git status\nOn branch feature/checkout-flow\nYou have unmerged paths.\n  both modified:   database/migrations/2026_07_01_add_status_column.php\nReporter note: johan.p and fajar.m both edited the same route group block within the last hour.",
+      "project_tags": [
+        "git",
+        "version-control",
+        "inventory-api"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1019",
+      "raw_text": "[2026-07-10 14:06:00] eventin-worker-1 | ERROR: failed to write to /var/www/html/storage/logs/laravel.log: Permission denied\n$ docker exec eventin-worker-1 ls -la /var/www/html/storage/logs\ndrwxr-xr-x 2 root   root   4096 Jul 10 08:02 .\n-rw-r--r-- 1 root   root      0 Jul 10 08:02 laravel.log\nContainer runs as uid=1000(www-data), host bind-mount owned by uid=0(root) after volume was recreated on new host.\nImage: registry.internal/eventin:1.3.2",
+      "project_tags": [
+        "docker",
+        "devops",
+        "eventin"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1020",
+      "raw_text": "$ git merge origin/develop\nAuto-merging package-lock.json\nCONFLICT (content): Merge conflict in package-lock.json\nAutomatic merge failed; fix conflicts and then commit the result.\n$ git status\nOn branch bugfix/pdf-export\nYou have unmerged paths.\n  both modified:   package-lock.json\nReporter note: rangga.a and johan.p both edited the same route group block within the last hour.",
+      "project_tags": [
+        "git",
+        "version-control",
+        "spk-saw-umkm"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1021",
+      "raw_text": "$ git merge feature/ranking-table\nwarning: LF will be replaced by CRLF in composer.lock.\nCONFLICT (content): Merge conflict in composer.lock\n$ git diff composer.lock | head -5\ndiff --git a/composer.lock b/composer.lock\nindex 3f9a1c2..7bd0e44 100644\nReporter note: dwi.k is on Windows with core.autocrlf=true, sinta.w committed from WSL with LF endings — every line shows as changed.",
+      "project_tags": [
+        "git",
+        "version-control",
+        "presensi-akademik"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1022",
+      "raw_text": "$ git push origin HEAD:refs/heads/feature/livewire-form\nTo git.internal:hite-core.git\n ! [rejected]        HEAD -> feature/livewire-form (non-fast-forward)\nerror: failed to push some refs to 'git.internal:hite-core.git'\nhint: Updates were rejected because a pushed branch tip is behind its remote counterpart.\n$ git status\nHEAD detached at a9f31de\nReporter note: johan.p checked out a specific commit to test a hotfix and forgot to create a branch before making changes.",
+      "project_tags": [
+        "git",
+        "version-control",
+        "hite-core"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1023",
+      "raw_text": "[2026-07-10 11:16:00] production.WARNING: Read query returned stale data on replica db-staging-02.internal (SQL: select `id`,`status` from `event_registrations` where `id` = 4821 for update) — replica lag reported by Seconds_Behind_Master: 47\nApplication symptom: user dwi.k reports newly created event_registration record 'not found' immediately after submission via Livewire component on branch `feature/checkout-flow`.",
+      "project_tags": [
+        "laravel",
+        "mysql",
+        "database",
+        "hite-core"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1024",
+      "raw_text": "$ docker ps -a | grep hite-core-scheduler-1\nhite-core-scheduler-1   registry.internal/hite-core:latest   Up 2 minutes (unhealthy)   0.0.0.0:8080->80/tcp\n[2026-07-10 15:11:00] Health check failed: curl: (7) Failed to connect to localhost port 80: Connection refused\nnginx error.log:\n  [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)\n  nginx: [emerg] still could not bind()\nNote: two replicas of hite-core-scheduler-1 appear to be racing for the same host port after a `docker compose up --scale` change.",
+      "project_tags": [
+        "docker",
+        "devops",
+        "hite-core"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1025",
+      "raw_text": "[2026-07-10 09:41:00] production.ERROR: Connection refused [tcp://redis-inventory-api.internal:6379] {\"exception\":\"[object] (Predis\\\\Connection\\\\ConnectionException(code: 0): Connection refused at /var/www/inventory-api/vendor/predis/predis/src/Connection/AbstractConnection.php:187)\"}\nContext: horizon worker for queue=`default` failed 3 consecutive supervisor restarts.\n`docker logs redis-inventory-api` shows: 'Ready to accept connections' followed by repeated client disconnects every ~10s.",
+      "project_tags": [
+        "laravel",
+        "redis",
+        "queue",
+        "horizon",
+        "inventory-api"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1026",
+      "raw_text": "$ docker compose ps\npresensi-akademik-worker-1   Restarting (1) 4 seconds ago\npresensi-akademik-db-1       Up 10 minutes (healthy)\n[2026-07-10 12:27:00] worker | SQLSTATE[HY000] [2002] No route to host — waiting for `db` service (depends_on: condition: service_healthy)\n[2026-07-10 12:27:00] worker | Retrying database connection (attempt 14/15)...\n[2026-07-10 12:27:00] worker | Max connection attempts reached, exiting with code 139\nSuspected cause: `depends_on` healthcheck on `db` passes before MySQL finishes InnoDB crash recovery on restart.",
+      "project_tags": [
+        "docker",
+        "docker-compose",
+        "mysql",
+        "presensi-akademik"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1027",
+      "raw_text": "[2026-07-10 09:00:00] production.WARNING: Read query returned stale data on replica db-prod-01.internal (SQL: select `id`,`status` from `orders` where `id` = 4821 for update) — replica lag reported by Seconds_Behind_Master: 47\nApplication symptom: user dwi.k reports newly created order record 'not found' immediately after submission via Livewire component on branch `feature/checkout-flow`.",
+      "project_tags": [
+        "laravel",
+        "mysql",
+        "database",
+        "presensi-akademik"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1028",
+      "raw_text": "[2026-07-10 12:53:00] billing-service-worker-1 | ERROR: failed to write to /var/www/html/storage/logs/laravel.log: Permission denied\n$ docker exec billing-service-worker-1 ls -la /var/www/html/storage/logs\ndrwxr-xr-x 2 root   root   4096 Jul 10 08:02 .\n-rw-r--r-- 1 root   root      0 Jul 10 08:02 laravel.log\nContainer runs as uid=1000(www-data), host bind-mount owned by uid=0(root) after volume was recreated on new host.\nImage: registry.internal/billing-service:1.3.2",
+      "project_tags": [
+        "docker",
+        "devops",
+        "billing-service"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1029",
+      "raw_text": "[2026-07-10 10:14:00] production.ERROR: SQLSTATE[HY000] [2002] Connection timed out (SQL: select * from `users` where `users`.`deleted_at` is null order by `created_at` desc limit 25 offset 0) {\"exception\":\"[object] (Illuminate\\\\Database\\\\QueryException(code: 2002): SQLSTATE[HY000] [2002] Connection timed out at /var/www/hite-core/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:70)\"}\n#0 /var/www/hite-core/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php(46): PDO->__construct('mysql:host=db-staging-02.internal;port=3306;dbname=hite-core_prod', 'app_user', '********', Array)\n#1 /var/www/hite-core/vendor/laravel/framework/src/Illuminate/Database/Connectors/MySqlConnector.php(24): Illuminate\\Database\\Connectors\\Connector->createConnection('mysql:host=db-staging-02.internal...', Array, Array)\n#2 /var/www/hite-core/app/Http/Controllers/UsersController.php(31): Illuminate\\Database\\Connection->select()\nConnection pool status at time of failure: active=98/100, idle=0, wait_queue=14",
+      "project_tags": [
+        "laravel",
+        "mysql",
+        "database",
+        "hite-core"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1030",
+      "raw_text": "[2026-07-10 08:15:00] production.ERROR: SQLSTATE[HY000] [2002] Connection timed out (SQL: select * from `ranking_scores` where `ranking_scores`.`deleted_at` is null order by `created_at` desc limit 25 offset 0) {\"exception\":\"[object] (Illuminate\\\\Database\\\\QueryException(code: 2002): SQLSTATE[HY000] [2002] Connection timed out at /var/www/inventory-api/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:70)\"}\n#0 /var/www/inventory-api/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php(46): PDO->__construct('mysql:host=db-prod-01.internal;port=3306;dbname=inventory-api_prod', 'app_user', '********', Array)\n#1 /var/www/inventory-api/vendor/laravel/framework/src/Illuminate/Database/Connectors/MySqlConnector.php(24): Illuminate\\Database\\Connectors\\Connector->createConnection('mysql:host=db-prod-01.internal...', Array, Array)\n#2 /var/www/inventory-api/app/Http/Controllers/Ranking_scoresController.php(31): Illuminate\\Database\\Connection->select()\nConnection pool status at time of failure: active=98/100, idle=0, wait_queue=14",
+      "project_tags": [
+        "laravel",
+        "mysql",
+        "database",
+        "inventory-api"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1031",
+      "raw_text": "[2026-07-10 08:21:00] local.ERROR: SQLSTATE[HY000] [1040] Too many connections (Connection: mysql, SQL: insert into `orders` (`user_id`, `status`, `updated_at`) values (?, ?, ?)) {\"userId\":null,\"exception\":\"[object] (PDOException(code: 1040): SQLSTATE[HY000] [1040] Too many connections at /var/www/inventory-api/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:70)\"}\nmysqld_stat: Threads_connected: 151 / max_connections=150\nReported by: developer while running `php artisan queue:work --queue=default` locally against shared staging DB db-prod-03.internal.",
+      "project_tags": [
+        "laravel",
+        "mysql",
+        "database",
+        "inventory-api"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1032",
+      "raw_text": "$ git submodule update --init --recursive\nSubmodule path 'packages/inventory-api-shared-ui': checked out 'f4e2a91' \nerror: Your local changes to the following files would be overwritten by checkout:\n  packages/inventory-api-shared-ui/src/components/Table.vue\nPlease commit your changes or stash them before you switch branches.\nerror: The following untracked working tree files would be overwritten by checkout",
+      "project_tags": [
+        "git",
+        "submodules",
+        "inventory-api"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1033",
+      "raw_text": "$ docker inspect spk-saw-umkm-app-1 --format='{{.State.Status}} {{.State.ExitCode}} {{.State.OOMKilled}}'\nexited 137 true\n[2026-07-10 13:23:00] kernel: Out of memory: Killed process 18422 (spk-saw-umkm-app-1) total-vm:1288944kB, anon-rss:512200kB\ndocker-compose logs --tail=20 spk-saw-umkm-app-1:\n  php-fpm: pm.max_children reached, spawning workers too fast\n  Fatal error: Allowed memory size of 536870912 bytes exhausted while processing large CSV export job\nContainer restart count in last hour: 6 (crash loop)",
+      "project_tags": [
+        "docker",
+        "devops",
+        "spk-saw-umkm"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1034",
+      "raw_text": "[2026-07-10 09:14:00] production.ERROR: SQLSTATE[HY000] [2002] Connection timed out (SQL: select * from `attendance_logs` where `attendance_logs`.`deleted_at` is null order by `created_at` desc limit 25 offset 0) {\"exception\":\"[object] (Illuminate\\\\Database\\\\QueryException(code: 2002): SQLSTATE[HY000] [2002] Connection timed out at /var/www/presensi-akademik/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:70)\"}\n#0 /var/www/presensi-akademik/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php(46): PDO->__construct('mysql:host=db-staging-01.internal;port=3306;dbname=presensi-akademik_prod', 'app_user', '********', Array)\n#1 /var/www/presensi-akademik/vendor/laravel/framework/src/Illuminate/Database/Connectors/MySqlConnector.php(24): Illuminate\\Database\\Connectors\\Connector->createConnection('mysql:host=db-staging-01.internal...', Array, Array)\n#2 /var/www/presensi-akademik/app/Http/Controllers/Attendance_logsController.php(31): Illuminate\\Database\\Connection->select()\nConnection pool status at time of failure: active=98/100, idle=0, wait_queue=14",
+      "project_tags": [
+        "laravel",
+        "mysql",
+        "database",
+        "presensi-akademik"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1035",
+      "raw_text": "[2026-07-10 08:47:00] production.ERROR: Connection refused [tcp://redis-spk-saw-umkm.internal:6379] {\"exception\":\"[object] (Predis\\\\Connection\\\\ConnectionException(code: 0): Connection refused at /var/www/spk-saw-umkm/vendor/predis/predis/src/Connection/AbstractConnection.php:187)\"}\nContext: horizon worker for queue=`default` failed 3 consecutive supervisor restarts.\n`docker logs redis-spk-saw-umkm` shows: 'Ready to accept connections' followed by repeated client disconnects every ~10s.",
+      "project_tags": [
+        "laravel",
+        "redis",
+        "queue",
+        "horizon",
+        "spk-saw-umkm"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1036",
+      "raw_text": "$ git push origin HEAD:refs/heads/feature/checkout-flow\nTo git.internal:billing-service.git\n ! [rejected]        HEAD -> feature/checkout-flow (non-fast-forward)\nerror: failed to push some refs to 'git.internal:billing-service.git'\nhint: Updates were rejected because a pushed branch tip is behind its remote counterpart.\n$ git status\nHEAD detached at a9f31de\nReporter note: rangga.a checked out a specific commit to test a hotfix and forgot to create a branch before making changes.",
+      "project_tags": [
+        "git",
+        "version-control",
+        "billing-service"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1037",
+      "raw_text": "$ docker build -t registry.internal/spk-saw-umkm:1.3.2 .\nStep 9/14 : RUN composer install --no-dev --optimize-autoloader\n ---> Running in 7fa2c9e1d3b4\nIn Fatal error: Uncaught Error: Class \"Symfony\\Component\\Process\\Process\" not found in /app/vendor/composer/installed.php\nComposer version mismatch: lock file generated with composer 2.7, image ships composer 2.2 (apt cache stale).\nBuild exited with code 143, reported blocking CI pipeline for branch `hotfix/auth-guard`.",
+      "project_tags": [
+        "docker",
+        "ci-cd",
+        "composer",
+        "spk-saw-umkm"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1038",
+      "raw_text": "$ docker inspect spk-saw-umkm-app-1 --format='{{.State.Status}} {{.State.ExitCode}} {{.State.OOMKilled}}'\nexited 137 true\n[2026-07-10 14:55:00] kernel: Out of memory: Killed process 18422 (spk-saw-umkm-app-1) total-vm:1288944kB, anon-rss:512200kB\ndocker-compose logs --tail=20 spk-saw-umkm-app-1:\n  php-fpm: pm.max_children reached, spawning workers too fast\n  Fatal error: Allowed memory size of 536870912 bytes exhausted while processing large CSV export job\nContainer restart count in last hour: 6 (crash loop)",
+      "project_tags": [
+        "docker",
+        "devops",
+        "spk-saw-umkm"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1039",
+      "raw_text": "$ git pull origin release/1.4.0\nAuto-merging resources/views/livewire/dashboard.blade.php\nCONFLICT (content): Merge conflict in resources/views/livewire/dashboard.blade.php\n<<<<<<< HEAD\n    \"laravel/framework\": {\"version\": \"v11.9.0\"},\n=======\n    \"laravel/framework\": {\"version\": \"v11.11.2\"},\n>>>>>>> origin/release/1.4.0\nReporter note: two teammates ran `composer update` / `npm install` independently before pushing.",
+      "project_tags": [
+        "git",
+        "dependency-management",
+        "inventory-api"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1040",
+      "raw_text": "$ git rebase origin/main\nAuto-merging package-lock.json\nCONFLICT (content): Merge conflict in package-lock.json\nerror: could not apply a1b2c3d... chore: bump dependency versions\nResolve all conflicts manually, mark them as resolved with \"git add/rm <conflicted_files>\", then run \"git rebase --continue\".\n$ git diff --name-only --diff-filter=U\npackage-lock.json",
+      "project_tags": [
+        "git",
+        "version-control",
+        "eventin"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1041",
+      "raw_text": "$ docker build -t registry.internal/billing-service:latest .\nStep 9/14 : RUN composer install --no-dev --optimize-autoloader\n ---> Running in 7fa2c9e1d3b4\nIn Fatal error: Uncaught Error: Class \"Symfony\\Component\\Process\\Process\" not found in /app/vendor/composer/installed.php\nComposer version mismatch: lock file generated with composer 2.7, image ships composer 2.2 (apt cache stale).\nBuild exited with code 139, reported blocking CI pipeline for branch `develop`.",
+      "project_tags": [
+        "docker",
+        "ci-cd",
+        "composer",
+        "billing-service"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1042",
+      "raw_text": "[2026-07-10 10:55:00] production.ERROR: Connection refused [tcp://redis-presensi-akademik.internal:6379] {\"exception\":\"[object] (Predis\\\\Connection\\\\ConnectionException(code: 0): Connection refused at /var/www/presensi-akademik/vendor/predis/predis/src/Connection/AbstractConnection.php:187)\"}\nContext: horizon worker for queue=`exports` failed 3 consecutive supervisor restarts.\n`docker logs redis-presensi-akademik` shows: 'Ready to accept connections' followed by repeated client disconnects every ~10s.",
+      "project_tags": [
+        "laravel",
+        "redis",
+        "queue",
+        "horizon",
+        "presensi-akademik"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1043",
+      "raw_text": "$ git submodule update --init --recursive\nSubmodule path 'packages/hite-core-shared-ui': checked out 'f4e2a91' \nerror: Your local changes to the following files would be overwritten by checkout:\n  packages/hite-core-shared-ui/src/components/Table.vue\nPlease commit your changes or stash them before you switch branches.\nerror: The following untracked working tree files would be overwritten by checkout",
+      "project_tags": [
+        "git",
+        "submodules",
+        "hite-core"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1044",
+      "raw_text": "$ docker ps -a | grep hite-core-worker-1\nhite-core-worker-1   registry.internal/hite-core:1.4.0-rc1   Up 2 minutes (unhealthy)   0.0.0.0:8080->80/tcp\n[2026-07-10 11:53:00] Health check failed: curl: (7) Failed to connect to localhost port 80: Connection refused\nnginx error.log:\n  [emerg] bind() to 0.0.0.0:80 failed (98: Address already in use)\n  nginx: [emerg] still could not bind()\nNote: two replicas of hite-core-worker-1 appear to be racing for the same host port after a `docker compose up --scale` change.",
+      "project_tags": [
+        "docker",
+        "devops",
+        "hite-core"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1045",
+      "raw_text": "$ docker inspect inventory-api-nginx-1 --format='{{.State.Status}} {{.State.ExitCode}} {{.State.OOMKilled}}'\nexited 137 true\n[2026-07-10 11:41:00] kernel: Out of memory: Killed process 18422 (inventory-api-nginx-1) total-vm:1288944kB, anon-rss:512200kB\ndocker-compose logs --tail=20 inventory-api-nginx-1:\n  php-fpm: pm.max_children reached, spawning workers too fast\n  Fatal error: Allowed memory size of 536870912 bytes exhausted while processing large CSV export job\nContainer restart count in last hour: 6 (crash loop)",
+      "project_tags": [
+        "docker",
+        "devops",
+        "inventory-api"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1046",
+      "raw_text": "[2026-07-10 10:06:00] production.WARNING: Read query returned stale data on replica db-prod-03.internal (SQL: select `id`,`status` from `event_registrations` where `id` = 4821 for update) — replica lag reported by Seconds_Behind_Master: 47\nApplication symptom: user nadia.r reports newly created event_registration record 'not found' immediately after submission via Livewire component on branch `feature/livewire-form`.",
+      "project_tags": [
+        "laravel",
+        "mysql",
+        "database",
+        "inventory-api"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1047",
+      "raw_text": "$ git rebase origin/main\nAuto-merging app/Models/User.php\nCONFLICT (content): Merge conflict in app/Models/User.php\nerror: could not apply a1b2c3d... feat: add livewire checkout component\nResolve all conflicts manually, mark them as resolved with \"git add/rm <conflicted_files>\", then run \"git rebase --continue\".\n$ git diff --name-only --diff-filter=U\napp/Models/User.php",
+      "project_tags": [
+        "git",
+        "version-control",
+        "spk-saw-umkm"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1048",
+      "raw_text": "[2026-07-10 09:19:00] local.ERROR: SQLSTATE[HY000] [1040] Too many connections (Connection: mysql, SQL: insert into `ranking_scores` (`user_id`, `status`, `updated_at`) values (?, ?, ?)) {\"userId\":null,\"exception\":\"[object] (PDOException(code: 1040): SQLSTATE[HY000] [1040] Too many connections at /var/www/billing-service/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:70)\"}\nmysqld_stat: Threads_connected: 151 / max_connections=150\nReported by: developer while running `php artisan queue:work --queue=exports` locally against shared staging DB db-staging-03.internal.",
+      "project_tags": [
+        "laravel",
+        "mysql",
+        "database",
+        "billing-service"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1049",
+      "raw_text": "[2026-07-10 09:24:00] staging.ERROR: SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded; try restarting transaction (SQL: alter table `event_registrations` add `synced_at` timestamp null after `updated_at`)\nStack: Illuminate\\Database\\Schema\\Blueprint->build() -> Connection->statement() -> PDOStatement->execute()\nCommand run: php artisan migrate --force on host db-prod-02.internal\nNote from reporter: migration has been stuck for ~6 minutes, another long-running report query is holding a lock on `event_registrations`.",
+      "project_tags": [
+        "laravel",
+        "mysql",
+        "database",
+        "eventin"
+      ]
+    },
+    {
+      "ticket_id": "TKT-1050",
+      "raw_text": "[2026-07-10 11:35:00] local.ERROR: SQLSTATE[HY000] [1040] Too many connections (Connection: mysql, SQL: insert into `invoices` (`user_id`, `status`, `updated_at`) values (?, ?, ?)) {\"userId\":null,\"exception\":\"[object] (PDOException(code: 1040): SQLSTATE[HY000] [1040] Too many connections at /var/www/hite-core/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:70)\"}\nmysqld_stat: Threads_connected: 151 / max_connections=150\nReported by: developer while running `php artisan queue:work --queue=default` locally against shared staging DB db-staging-03.internal.",
+      "project_tags": [
+        "laravel",
+        "mysql",
+        "database",
+        "hite-core"
+      ]
+    }
+  ]
+}
