@@ -1,0 +1,30 @@
+name: Rollback API Gateway
+
+on:
+  workflow_dispatch:
+    inputs:
+      revision:
+        description: 'Git SHA or image tag to rollback to (e.g., 4794eb9)'
+        required: true
+        type: string
+
+jobs:
+  rollback:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          ssh-key: ${{ secrets.DEPLOY_KEY }}
+      - name: Rollback image tag
+        run: |
+          cd api-gateway/k8s
+          sed -i "s|newTag: .*|newTag: ${{ inputs.revision }}|" kustomization.yaml
+      - name: Commit and push rollback
+        run: |
+          git config user.name "github-actions[bot]"
+          git config user.email "github-actions[bot]@users.noreply.github.com"
+          git add api-gateway/k8s/kustomization.yaml
+          git commit -m "rollback: api-gateway to ${{ inputs.revision }}" -m "use: github.com/Merpatidove/QTI-MAGANG/actions/workflows/rollback.yml"
+          git push

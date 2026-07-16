@@ -6,6 +6,10 @@ on:
     paths:
       - "api-gateway/**"
 
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
 env:
   IMAGE_NAME: ghcr.io/merpatidove/qti-api-gateway
 
@@ -48,6 +52,15 @@ jobs:
           tags: ${{ steps.meta.outputs.tags }}
           cache-from: type=gha
           cache-to: type=gha,mode=max
+
+      - name: Smoke test
+        run: |
+          docker run -d --name smoke-test -p 8080:8080 \
+            ${{ steps.meta.outputs.tags }}
+          sleep 3
+          curl -s http://localhost:8080/v1/health | grep -q '"status":"ok"'
+          echo "Smoke test passed"
+          docker rm -f smoke-test
 
       - name: Update image tag in manifests
         run: |
