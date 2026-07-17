@@ -8,7 +8,11 @@
         "mysql",
         "database",
         "eventin"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-001",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Confirm the DB host is reachable and check current connection load\nmysqladmin -h db-prod-03.internal -u app_user -p ping\nmysqladmin -h db-prod-03.internal -u app_user -p status | grep Threads_connected\n\n# 2. Raise the PDO connection timeout in config/database.php\n#    'options' => [PDO::ATTR_TIMEOUT => 10]\n\n# 3. Clear and rebuild the config cache so the change takes effect\nphp artisan config:clear\nphp artisan config:cache --env=production\n\n# 4. Restart the PHP-FPM pool to drop any connections stuck mid-handshake\nsudo systemctl restart php8.3-fpm"
     },
     {
       "ticket_id": "TKT-1002",
@@ -17,7 +21,11 @@
         "docker",
         "devops",
         "billing-service"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-003",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Inspect current ownership inside the container\ndocker exec <container> ls -la /var/www/html/storage/logs\n\n# 2. Fix ownership to match the container's runtime user\ndocker exec -u root <container> chown -R www-data:www-data /var/www/html/storage\n\n# 3. Persist the fix so it survives future volume recreation, by adding\n#    to the image's entrypoint script:\n#    chown -R www-data:www-data /var/www/html/storage"
     },
     {
       "ticket_id": "TKT-1003",
@@ -27,7 +35,11 @@
         "docker-compose",
         "mysql",
         "eventin"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-004",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Confirm the database's actual readiness versus its reported health\ndocker exec <db_container> mysqladmin ping -uroot -p\n\n# 2. Tighten the healthcheck to reflect true readiness, with a longer\n#    start_period to cover crash-recovery time (docker-compose.yml):\n#    healthcheck:\n#      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"localhost\"]\n#      interval: 5s\n#      retries: 10\n#      start_period: 30s\n\n# 3. Recreate the stack so the corrected healthcheck takes effect\ndocker compose up -d --force-recreate"
     },
     {
       "ticket_id": "TKT-1004",
@@ -36,7 +48,11 @@
         "docker",
         "devops",
         "spk-saw-umkm"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-002",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Find what is already bound to the port\nsudo lsof -i :80\ndocker ps --format '{{.Names}} {{.Ports}}'\n\n# 2. Stop the duplicate/orphaned container\ndocker stop <duplicate_container_id>\n\n# 3. Bring the service back up at the intended scale\ndocker compose up -d --scale app=1 --no-recreate"
     },
     {
       "ticket_id": "TKT-1005",
@@ -46,7 +62,11 @@
         "mysql",
         "database",
         "inventory-api"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-003",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Identify the blocking transaction\nmysql -h db-staging-01.internal -u root -p -e \\\n  \"SELECT * FROM information_schema.innodb_trx ORDER BY trx_started;\"\n\n# 2. Confirm with the on-call engineer before killing anything in production,\n#    then terminate the blocking session\nmysql -h db-staging-01.internal -u root -p -e \"KILL <blocking_thread_id>;\"\n\n# 3. Re-run the migration\nphp artisan migrate --force"
     },
     {
       "ticket_id": "TKT-1006",
@@ -55,7 +75,11 @@
         "git",
         "version-control",
         "presensi-akademik"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-003",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Immediately save the detached work on a proper branch\ngit branch recovered-work-<date>\n\n# 2. Return to the intended branch\ngit checkout <branch>\n\n# 3. Bring the recovered commits into the intended branch\ngit cherry-pick <commit_sha>\n\n# 4. Push normally once the branch is up to date\ngit push origin <branch>"
     },
     {
       "ticket_id": "TKT-1007",
@@ -65,7 +89,11 @@
         "docker-compose",
         "mysql",
         "presensi-akademik"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-004",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Confirm the database's actual readiness versus its reported health\ndocker exec <db_container> mysqladmin ping -uroot -p\n\n# 2. Tighten the healthcheck to reflect true readiness, with a longer\n#    start_period to cover crash-recovery time (docker-compose.yml):\n#    healthcheck:\n#      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"localhost\"]\n#      interval: 5s\n#      retries: 10\n#      start_period: 30s\n\n# 3. Recreate the stack so the corrected healthcheck takes effect\ndocker compose up -d --force-recreate"
     },
     {
       "ticket_id": "TKT-1008",
@@ -75,7 +103,11 @@
         "mysql",
         "database",
         "eventin"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-002",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Identify and terminate idle/orphaned connections\nmysql -h db-staging-01.internal -u root -p -e \"SHOW PROCESSLIST;\"\nmysql -h db-staging-01.internal -u root -p -e \"KILL <idle_process_id>;\"\n\n# 2. Raise max_connections as immediate relief (does not require restart)\nmysql -h db-staging-01.internal -u root -p -e \"SET GLOBAL max_connections = 300;\"\n\n# 3. Reduce concurrent workers on the application side\nphp artisan horizon:terminate\n# lower `numprocs` in the Horizon/Supervisor config, then\nphp artisan horizon"
     },
     {
       "ticket_id": "TKT-1009",
@@ -84,7 +116,11 @@
         "git",
         "version-control",
         "billing-service"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-002",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. See which files need resolution for the current commit in the sequence\ngit status\ngit diff --name-only --diff-filter=U\n\n# 2. Resolve the conflict markers in each listed file, then\ngit add <file>\ngit rebase --continue\n\n# 3. If the history is too tangled to resolve safely, abort back to the\n#    pre-rebase state and re-plan\ngit rebase --abort"
     },
     {
       "ticket_id": "TKT-1010",
@@ -93,7 +129,11 @@
         "git",
         "version-control",
         "presensi-akademik"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-001",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. See which files need manual resolution\ngit status\n\n# 2. Open each conflicting file and resolve the <<<<<<< / ======= / >>>>>>>\n#    markers, keeping the correct combination of both changes\n\n# 3. Stage the resolved file(s) and complete the merge\ngit add <file>\ngit commit -m \"Resolve merge conflict in <file>\""
     },
     {
       "ticket_id": "TKT-1011",
@@ -102,7 +142,11 @@
         "docker",
         "devops",
         "eventin"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-001",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Confirm the OOM kill in the kernel log\ndmesg | grep -i \"out of memory\" | tail -5\n\n# 2. Raise the container's memory limit in docker-compose.yml\n#    mem_limit: 1024m  ->  mem_limit: 2048m\n\n# 3. Recreate the container with the new limit\ndocker compose up -d --force-recreate <service_name>"
     },
     {
       "ticket_id": "TKT-1012",
@@ -111,7 +155,11 @@
         "git",
         "version-control",
         "inventory-api"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-006",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Standardize line endings for this repository going forward\necho \"* text=auto eol=lf\" >> .gitattributes\n\n# 2. Renormalize all tracked files to the standardized ending\ngit add --renormalize .\ngit commit -m \"Normalize line endings to LF\"\n\n# 3. Ask Windows-based contributors to stop converting on checkout for this repo\ngit config core.autocrlf input"
     },
     {
       "ticket_id": "TKT-1013",
@@ -120,7 +168,11 @@
         "docker",
         "devops",
         "billing-service"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-002",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Find what is already bound to the port\nsudo lsof -i :80\ndocker ps --format '{{.Names}} {{.Ports}}'\n\n# 2. Stop the duplicate/orphaned container\ndocker stop <duplicate_container_id>\n\n# 3. Bring the service back up at the intended scale\ndocker compose up -d --scale app=1 --no-recreate"
     },
     {
       "ticket_id": "TKT-1014",
@@ -129,7 +181,11 @@
         "git",
         "dependency-management",
         "eventin"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-004",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Accept one side as the starting point (commonly the incoming branch)\ngit checkout --theirs composer.lock\n\n# 2. Regenerate the lock file from the manifest so it is internally consistent\ncomposer install\n# or, for a Node project:\n# npm install\n\n# 3. Stage and commit the regenerated lock file\ngit add composer.lock\ngit commit -m \"Regenerate lockfile after merge\""
     },
     {
       "ticket_id": "TKT-1015",
@@ -138,7 +194,11 @@
         "git",
         "dependency-management",
         "billing-service"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-004",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Accept one side as the starting point (commonly the incoming branch)\ngit checkout --theirs composer.lock\n\n# 2. Regenerate the lock file from the manifest so it is internally consistent\ncomposer install\n# or, for a Node project:\n# npm install\n\n# 3. Stage and commit the regenerated lock file\ngit add composer.lock\ngit commit -m \"Regenerate lockfile after merge\""
     },
     {
       "ticket_id": "TKT-1016",
@@ -148,7 +208,11 @@
         "ci-cd",
         "composer",
         "hite-core"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-005",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Confirm the Composer version baked into the current base image\ndocker run --rm <image> composer --version\n\n# 2. Pin Composer explicitly in the Dockerfile rather than relying on\n#    whatever apt/curl resolves at build time\n#    RUN composer self-update 2.7.7\n\n# 3. Rebuild without cache to force the pinned version to take effect\ndocker build --no-cache -t <image> ."
     },
     {
       "ticket_id": "TKT-1017",
@@ -158,7 +222,11 @@
         "mysql",
         "database",
         "billing-service"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-003",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Identify the blocking transaction\nmysql -h db-staging-01.internal -u root -p -e \\\n  \"SELECT * FROM information_schema.innodb_trx ORDER BY trx_started;\"\n\n# 2. Confirm with the on-call engineer before killing anything in production,\n#    then terminate the blocking session\nmysql -h db-staging-01.internal -u root -p -e \"KILL <blocking_thread_id>;\"\n\n# 3. Re-run the migration\nphp artisan migrate --force"
     },
     {
       "ticket_id": "TKT-1018",
@@ -167,7 +235,11 @@
         "git",
         "version-control",
         "inventory-api"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-001",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. See which files need manual resolution\ngit status\n\n# 2. Open each conflicting file and resolve the <<<<<<< / ======= / >>>>>>>\n#    markers, keeping the correct combination of both changes\n\n# 3. Stage the resolved file(s) and complete the merge\ngit add <file>\ngit commit -m \"Resolve merge conflict in <file>\""
     },
     {
       "ticket_id": "TKT-1019",
@@ -176,7 +248,11 @@
         "docker",
         "devops",
         "eventin"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-003",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Inspect current ownership inside the container\ndocker exec <container> ls -la /var/www/html/storage/logs\n\n# 2. Fix ownership to match the container's runtime user\ndocker exec -u root <container> chown -R www-data:www-data /var/www/html/storage\n\n# 3. Persist the fix so it survives future volume recreation, by adding\n#    to the image's entrypoint script:\n#    chown -R www-data:www-data /var/www/html/storage"
     },
     {
       "ticket_id": "TKT-1020",
@@ -185,7 +261,11 @@
         "git",
         "version-control",
         "spk-saw-umkm"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-001",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. See which files need manual resolution\ngit status\n\n# 2. Open each conflicting file and resolve the <<<<<<< / ======= / >>>>>>>\n#    markers, keeping the correct combination of both changes\n\n# 3. Stage the resolved file(s) and complete the merge\ngit add <file>\ngit commit -m \"Resolve merge conflict in <file>\""
     },
     {
       "ticket_id": "TKT-1021",
@@ -194,7 +274,11 @@
         "git",
         "version-control",
         "presensi-akademik"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-006",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Standardize line endings for this repository going forward\necho \"* text=auto eol=lf\" >> .gitattributes\n\n# 2. Renormalize all tracked files to the standardized ending\ngit add --renormalize .\ngit commit -m \"Normalize line endings to LF\"\n\n# 3. Ask Windows-based contributors to stop converting on checkout for this repo\ngit config core.autocrlf input"
     },
     {
       "ticket_id": "TKT-1022",
@@ -203,7 +287,11 @@
         "git",
         "version-control",
         "hite-core"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-003",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Immediately save the detached work on a proper branch\ngit branch recovered-work-<date>\n\n# 2. Return to the intended branch\ngit checkout <branch>\n\n# 3. Bring the recovered commits into the intended branch\ngit cherry-pick <commit_sha>\n\n# 4. Push normally once the branch is up to date\ngit push origin <branch>"
     },
     {
       "ticket_id": "TKT-1023",
@@ -213,7 +301,11 @@
         "mysql",
         "database",
         "hite-core"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-005",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Confirm the lag at the time of the incident\nmysql -h <replica_host> -u root -p -e \"SHOW SLAVE STATUS\\G\" | grep Seconds_Behind_Master\n\n# 2. Enable Laravel's sticky connection option so a read immediately\n#    following a write in the same request goes to the primary\n#    (config/database.php): 'sticky' => true\n\n# 3. Rebuild config cache to apply the change\nphp artisan config:clear\nphp artisan config:cache --env=production"
     },
     {
       "ticket_id": "TKT-1024",
@@ -222,7 +314,11 @@
         "docker",
         "devops",
         "hite-core"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-002",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Find what is already bound to the port\nsudo lsof -i :80\ndocker ps --format '{{.Names}} {{.Ports}}'\n\n# 2. Stop the duplicate/orphaned container\ndocker stop <duplicate_container_id>\n\n# 3. Bring the service back up at the intended scale\ndocker compose up -d --scale app=1 --no-recreate"
     },
     {
       "ticket_id": "TKT-1025",
@@ -233,7 +329,11 @@
         "queue",
         "horizon",
         "inventory-api"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-004",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Confirm the Redis container is actually stable\ndocker ps | grep redis-<project>\ndocker logs redis-<project> --tail=50\n\n# 2. Restart the Redis service cleanly\ndocker compose restart redis\n\n# 3. Restart Horizon so workers re-establish clean connections\nphp artisan horizon:terminate\nphp artisan horizon"
     },
     {
       "ticket_id": "TKT-1026",
@@ -243,7 +343,11 @@
         "docker-compose",
         "mysql",
         "presensi-akademik"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-004",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Confirm the database's actual readiness versus its reported health\ndocker exec <db_container> mysqladmin ping -uroot -p\n\n# 2. Tighten the healthcheck to reflect true readiness, with a longer\n#    start_period to cover crash-recovery time (docker-compose.yml):\n#    healthcheck:\n#      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"localhost\"]\n#      interval: 5s\n#      retries: 10\n#      start_period: 30s\n\n# 3. Recreate the stack so the corrected healthcheck takes effect\ndocker compose up -d --force-recreate"
     },
     {
       "ticket_id": "TKT-1027",
@@ -253,7 +357,11 @@
         "mysql",
         "database",
         "presensi-akademik"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-005",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Confirm the lag at the time of the incident\nmysql -h <replica_host> -u root -p -e \"SHOW SLAVE STATUS\\G\" | grep Seconds_Behind_Master\n\n# 2. Enable Laravel's sticky connection option so a read immediately\n#    following a write in the same request goes to the primary\n#    (config/database.php): 'sticky' => true\n\n# 3. Rebuild config cache to apply the change\nphp artisan config:clear\nphp artisan config:cache --env=production"
     },
     {
       "ticket_id": "TKT-1028",
@@ -262,7 +370,11 @@
         "docker",
         "devops",
         "billing-service"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-003",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Inspect current ownership inside the container\ndocker exec <container> ls -la /var/www/html/storage/logs\n\n# 2. Fix ownership to match the container's runtime user\ndocker exec -u root <container> chown -R www-data:www-data /var/www/html/storage\n\n# 3. Persist the fix so it survives future volume recreation, by adding\n#    to the image's entrypoint script:\n#    chown -R www-data:www-data /var/www/html/storage"
     },
     {
       "ticket_id": "TKT-1029",
@@ -272,7 +384,11 @@
         "mysql",
         "database",
         "hite-core"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-001",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Confirm the DB host is reachable and check current connection load\nmysqladmin -h db-prod-03.internal -u app_user -p ping\nmysqladmin -h db-prod-03.internal -u app_user -p status | grep Threads_connected\n\n# 2. Raise the PDO connection timeout in config/database.php\n#    'options' => [PDO::ATTR_TIMEOUT => 10]\n\n# 3. Clear and rebuild the config cache so the change takes effect\nphp artisan config:clear\nphp artisan config:cache --env=production\n\n# 4. Restart the PHP-FPM pool to drop any connections stuck mid-handshake\nsudo systemctl restart php8.3-fpm"
     },
     {
       "ticket_id": "TKT-1030",
@@ -282,7 +398,11 @@
         "mysql",
         "database",
         "inventory-api"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-001",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Confirm the DB host is reachable and check current connection load\nmysqladmin -h db-prod-03.internal -u app_user -p ping\nmysqladmin -h db-prod-03.internal -u app_user -p status | grep Threads_connected\n\n# 2. Raise the PDO connection timeout in config/database.php\n#    'options' => [PDO::ATTR_TIMEOUT => 10]\n\n# 3. Clear and rebuild the config cache so the change takes effect\nphp artisan config:clear\nphp artisan config:cache --env=production\n\n# 4. Restart the PHP-FPM pool to drop any connections stuck mid-handshake\nsudo systemctl restart php8.3-fpm"
     },
     {
       "ticket_id": "TKT-1031",
@@ -292,7 +412,11 @@
         "mysql",
         "database",
         "inventory-api"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-002",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Identify and terminate idle/orphaned connections\nmysql -h db-staging-01.internal -u root -p -e \"SHOW PROCESSLIST;\"\nmysql -h db-staging-01.internal -u root -p -e \"KILL <idle_process_id>;\"\n\n# 2. Raise max_connections as immediate relief (does not require restart)\nmysql -h db-staging-01.internal -u root -p -e \"SET GLOBAL max_connections = 300;\"\n\n# 3. Reduce concurrent workers on the application side\nphp artisan horizon:terminate\n# lower `numprocs` in the Horizon/Supervisor config, then\nphp artisan horizon"
     },
     {
       "ticket_id": "TKT-1032",
@@ -301,7 +425,11 @@
         "git",
         "submodules",
         "inventory-api"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-005",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Inspect what has changed inside the submodule\ncd packages/<project>-shared-ui\ngit status\n\n# 2a. If the local changes should be kept, stash them first\ngit stash\n\n# 2b. If the local changes are not needed, discard them instead\n# git checkout -- .\n\n# 3. Return to the parent repository and complete the update\ncd ../..\ngit submodule update --init --recursive"
     },
     {
       "ticket_id": "TKT-1033",
@@ -310,7 +438,11 @@
         "docker",
         "devops",
         "spk-saw-umkm"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-001",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Confirm the OOM kill in the kernel log\ndmesg | grep -i \"out of memory\" | tail -5\n\n# 2. Raise the container's memory limit in docker-compose.yml\n#    mem_limit: 1024m  ->  mem_limit: 2048m\n\n# 3. Recreate the container with the new limit\ndocker compose up -d --force-recreate <service_name>"
     },
     {
       "ticket_id": "TKT-1034",
@@ -320,7 +452,11 @@
         "mysql",
         "database",
         "presensi-akademik"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-001",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Confirm the DB host is reachable and check current connection load\nmysqladmin -h db-prod-03.internal -u app_user -p ping\nmysqladmin -h db-prod-03.internal -u app_user -p status | grep Threads_connected\n\n# 2. Raise the PDO connection timeout in config/database.php\n#    'options' => [PDO::ATTR_TIMEOUT => 10]\n\n# 3. Clear and rebuild the config cache so the change takes effect\nphp artisan config:clear\nphp artisan config:cache --env=production\n\n# 4. Restart the PHP-FPM pool to drop any connections stuck mid-handshake\nsudo systemctl restart php8.3-fpm"
     },
     {
       "ticket_id": "TKT-1035",
@@ -331,7 +467,11 @@
         "queue",
         "horizon",
         "spk-saw-umkm"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-004",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Confirm the Redis container is actually stable\ndocker ps | grep redis-<project>\ndocker logs redis-<project> --tail=50\n\n# 2. Restart the Redis service cleanly\ndocker compose restart redis\n\n# 3. Restart Horizon so workers re-establish clean connections\nphp artisan horizon:terminate\nphp artisan horizon"
     },
     {
       "ticket_id": "TKT-1036",
@@ -340,7 +480,11 @@
         "git",
         "version-control",
         "billing-service"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-003",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Immediately save the detached work on a proper branch\ngit branch recovered-work-<date>\n\n# 2. Return to the intended branch\ngit checkout <branch>\n\n# 3. Bring the recovered commits into the intended branch\ngit cherry-pick <commit_sha>\n\n# 4. Push normally once the branch is up to date\ngit push origin <branch>"
     },
     {
       "ticket_id": "TKT-1037",
@@ -350,7 +494,11 @@
         "ci-cd",
         "composer",
         "spk-saw-umkm"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-005",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Confirm the Composer version baked into the current base image\ndocker run --rm <image> composer --version\n\n# 2. Pin Composer explicitly in the Dockerfile rather than relying on\n#    whatever apt/curl resolves at build time\n#    RUN composer self-update 2.7.7\n\n# 3. Rebuild without cache to force the pinned version to take effect\ndocker build --no-cache -t <image> ."
     },
     {
       "ticket_id": "TKT-1038",
@@ -359,7 +507,11 @@
         "docker",
         "devops",
         "spk-saw-umkm"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-001",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Confirm the OOM kill in the kernel log\ndmesg | grep -i \"out of memory\" | tail -5\n\n# 2. Raise the container's memory limit in docker-compose.yml\n#    mem_limit: 1024m  ->  mem_limit: 2048m\n\n# 3. Recreate the container with the new limit\ndocker compose up -d --force-recreate <service_name>"
     },
     {
       "ticket_id": "TKT-1039",
@@ -368,7 +520,11 @@
         "git",
         "dependency-management",
         "inventory-api"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-004",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Accept one side as the starting point (commonly the incoming branch)\ngit checkout --theirs composer.lock\n\n# 2. Regenerate the lock file from the manifest so it is internally consistent\ncomposer install\n# or, for a Node project:\n# npm install\n\n# 3. Stage and commit the regenerated lock file\ngit add composer.lock\ngit commit -m \"Regenerate lockfile after merge\""
     },
     {
       "ticket_id": "TKT-1040",
@@ -377,7 +533,11 @@
         "git",
         "version-control",
         "eventin"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-002",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. See which files need resolution for the current commit in the sequence\ngit status\ngit diff --name-only --diff-filter=U\n\n# 2. Resolve the conflict markers in each listed file, then\ngit add <file>\ngit rebase --continue\n\n# 3. If the history is too tangled to resolve safely, abort back to the\n#    pre-rebase state and re-plan\ngit rebase --abort"
     },
     {
       "ticket_id": "TKT-1041",
@@ -387,7 +547,11 @@
         "ci-cd",
         "composer",
         "billing-service"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-005",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Confirm the Composer version baked into the current base image\ndocker run --rm <image> composer --version\n\n# 2. Pin Composer explicitly in the Dockerfile rather than relying on\n#    whatever apt/curl resolves at build time\n#    RUN composer self-update 2.7.7\n\n# 3. Rebuild without cache to force the pinned version to take effect\ndocker build --no-cache -t <image> ."
     },
     {
       "ticket_id": "TKT-1042",
@@ -398,7 +562,11 @@
         "queue",
         "horizon",
         "presensi-akademik"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-004",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Confirm the Redis container is actually stable\ndocker ps | grep redis-<project>\ndocker logs redis-<project> --tail=50\n\n# 2. Restart the Redis service cleanly\ndocker compose restart redis\n\n# 3. Restart Horizon so workers re-establish clean connections\nphp artisan horizon:terminate\nphp artisan horizon"
     },
     {
       "ticket_id": "TKT-1043",
@@ -407,7 +575,11 @@
         "git",
         "submodules",
         "hite-core"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-005",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Inspect what has changed inside the submodule\ncd packages/<project>-shared-ui\ngit status\n\n# 2a. If the local changes should be kept, stash them first\ngit stash\n\n# 2b. If the local changes are not needed, discard them instead\n# git checkout -- .\n\n# 3. Return to the parent repository and complete the update\ncd ../..\ngit submodule update --init --recursive"
     },
     {
       "ticket_id": "TKT-1044",
@@ -416,7 +588,11 @@
         "docker",
         "devops",
         "hite-core"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-002",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Find what is already bound to the port\nsudo lsof -i :80\ndocker ps --format '{{.Names}} {{.Ports}}'\n\n# 2. Stop the duplicate/orphaned container\ndocker stop <duplicate_container_id>\n\n# 3. Bring the service back up at the intended scale\ndocker compose up -d --scale app=1 --no-recreate"
     },
     {
       "ticket_id": "TKT-1045",
@@ -425,7 +601,11 @@
         "docker",
         "devops",
         "inventory-api"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DOC-001",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Confirm the OOM kill in the kernel log\ndmesg | grep -i \"out of memory\" | tail -5\n\n# 2. Raise the container's memory limit in docker-compose.yml\n#    mem_limit: 1024m  ->  mem_limit: 2048m\n\n# 3. Recreate the container with the new limit\ndocker compose up -d --force-recreate <service_name>"
     },
     {
       "ticket_id": "TKT-1046",
@@ -435,7 +615,11 @@
         "mysql",
         "database",
         "inventory-api"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-005",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Confirm the lag at the time of the incident\nmysql -h <replica_host> -u root -p -e \"SHOW SLAVE STATUS\\G\" | grep Seconds_Behind_Master\n\n# 2. Enable Laravel's sticky connection option so a read immediately\n#    following a write in the same request goes to the primary\n#    (config/database.php): 'sticky' => true\n\n# 3. Rebuild config cache to apply the change\nphp artisan config:clear\nphp artisan config:cache --env=production"
     },
     {
       "ticket_id": "TKT-1047",
@@ -444,7 +628,11 @@
         "git",
         "version-control",
         "spk-saw-umkm"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-GIT-002",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. See which files need resolution for the current commit in the sequence\ngit status\ngit diff --name-only --diff-filter=U\n\n# 2. Resolve the conflict markers in each listed file, then\ngit add <file>\ngit rebase --continue\n\n# 3. If the history is too tangled to resolve safely, abort back to the\n#    pre-rebase state and re-plan\ngit rebase --abort"
     },
     {
       "ticket_id": "TKT-1048",
@@ -454,7 +642,11 @@
         "mysql",
         "database",
         "billing-service"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-002",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Identify and terminate idle/orphaned connections\nmysql -h db-staging-01.internal -u root -p -e \"SHOW PROCESSLIST;\"\nmysql -h db-staging-01.internal -u root -p -e \"KILL <idle_process_id>;\"\n\n# 2. Raise max_connections as immediate relief (does not require restart)\nmysql -h db-staging-01.internal -u root -p -e \"SET GLOBAL max_connections = 300;\"\n\n# 3. Reduce concurrent workers on the application side\nphp artisan horizon:terminate\n# lower `numprocs` in the Horizon/Supervisor config, then\nphp artisan horizon"
     },
     {
       "ticket_id": "TKT-1049",
@@ -464,7 +656,11 @@
         "mysql",
         "database",
         "eventin"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-003",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Identify the blocking transaction\nmysql -h db-staging-01.internal -u root -p -e \\\n  \"SELECT * FROM information_schema.innodb_trx ORDER BY trx_started;\"\n\n# 2. Confirm with the on-call engineer before killing anything in production,\n#    then terminate the blocking session\nmysql -h db-staging-01.internal -u root -p -e \"KILL <blocking_thread_id>;\"\n\n# 3. Re-run the migration\nphp artisan migrate --force"
     },
     {
       "ticket_id": "TKT-1050",
@@ -474,7 +670,78 @@
         "mysql",
         "database",
         "hite-core"
-      ]
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-DB-002",
+      "expected_confidence_tier": "A",
+      "expected_remediation_command": "# 1. Identify and terminate idle/orphaned connections\nmysql -h db-staging-01.internal -u root -p -e \"SHOW PROCESSLIST;\"\nmysql -h db-staging-01.internal -u root -p -e \"KILL <idle_process_id>;\"\n\n# 2. Raise max_connections as immediate relief (does not require restart)\nmysql -h db-staging-01.internal -u root -p -e \"SET GLOBAL max_connections = 300;\"\n\n# 3. Reduce concurrent workers on the application side\nphp artisan horizon:terminate\n# lower `numprocs` in the Horizon/Supervisor config, then\nphp artisan horizon"
+    },
+    {
+      "ticket_id": "TKT-1051",
+      "raw_text": "Jul 15 13:12:36 DEBIAN13 sudo[37171]: ferdi : TTY=pts/3 ; PWD=/home/ferdi ; USER=root ; COMMAND=/usr/bin/rm -rf /usr/share/ollama",
+      "project_tags": [
+        "vm",
+        "debian",
+        "security",
+        "syslog"
+      ],
+      "expected_agent_action": "ESCALATE",
+      "expected_sop_id": null,
+      "expected_confidence_tier": null,
+      "expected_remediation_command": null
+    },
+    {
+      "ticket_id": "TKT-1052",
+      "raw_text": "qti 57m Warning Failed pod/api-gateway-5777bc44c-5mbks Failed to pull image ghcr.io/merpatidove/qti-api-gateway:latest: 403 Forbidden",
+      "project_tags": [
+        "kubernetes",
+        "ci-cd",
+        "gitops"
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-K8S-001",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Confirm which image pull secret the pod/deployment references\nkubectl get pod <pod_name> -n <namespace> -o jsonpath='{.spec.imagePullSecrets}'\n\n# 2. Check whether the referenced secret's token is still valid\nkubectl get secret <pull_secret_name> -n <namespace> -o jsonpath='{.data.\\.dockerconfigjson}' | base64 -d\n\n# 3. Recreate the pull secret with a fresh registry token\nkubectl create secret docker-registry <pull_secret_name> \\\n  --docker-server=ghcr.io \\\n  --docker-username=<registry_user> \\\n  --docker-password=<fresh_token> \\\n  -n <namespace> --dry-run=client -o yaml | kubectl apply -f -\n\n# 4. Restart the affected deployment so it picks up the new secret\nkubectl rollout restart deployment/<deployment_name> -n <namespace>"
+    },
+    {
+      "ticket_id": "TKT-1053",
+      "raw_text": "monitoring 31m Warning Unhealthy pod/prometheus-kube-state-metrics-57c8d67ff4-sgc8v Liveness probe failed: HTTP probe failed with statuscode: 503",
+      "project_tags": [
+        "kubernetes",
+        "observability",
+        "prometheus"
+      ],
+      "expected_agent_action": "CALL_TOOL_SEARCH_SOP",
+      "expected_sop_id": "SOP-K8S-002",
+      "expected_confidence_tier": "B",
+      "expected_remediation_command": "# 1. Check what the health endpoint is actually reporting\nkubectl exec <pod_name> -n <namespace> -- curl -s localhost:<port>/healthz\n\n# 2. Review recent logs for the root cause behind the 503\nkubectl logs <pod_name> -n <namespace> --previous --tail=100\n\n# 3. If the probe is simply too aggressive for startup time, loosen it\n#    rather than restart-looping the pod (deployment spec):\n#    livenessProbe:\n#      initialDelaySeconds: 30\n#      periodSeconds: 15\n#      failureThreshold: 5\n\n# 4. Apply the updated probe configuration\nkubectl apply -f <deployment_manifest>.yaml"
+    },
+    {
+      "ticket_id": "TKT-1054",
+      "raw_text": "Jul 14 17:18:48 DEBIAN13 sshd-session[686313]: Disconnected from user ferdi 117.54.250.110 port 52135",
+      "project_tags": [
+        "vm",
+        "debian",
+        "ssh",
+        "syslog"
+      ],
+      "expected_agent_action": "AUTO_RESOLVED_NO_ACTION",
+      "expected_sop_id": null,
+      "expected_confidence_tier": null,
+      "expected_remediation_command": null
+    },
+    {
+      "ticket_id": "TKT-1055",
+      "raw_text": "argocd 8m13s Normal OperationCompleted application/qti-api-gateway Sync operation to d965a62972c9cf32cbef1eeb73b7f4a4039580a8 succeeded",
+      "project_tags": [
+        "kubernetes",
+        "gitops",
+        "argocd"
+      ],
+      "expected_agent_action": "AUTO_RESOLVED_SYSTEM_HEALED",
+      "expected_sop_id": null,
+      "expected_confidence_tier": null,
+      "expected_remediation_command": null
     }
   ]
 }
