@@ -9,7 +9,7 @@ This is the payload the API Gateway sends to the Python Inference Engine when a 
 ```json
 {
   "ticket_id": "TKT-8492",
-  "raw_text": "Getting a non-fast-forward error when trying to push to ResponsiPemweb_6_Bali main branch.",
+  "raw_text": "Getting a non-fast-forward error when trying toj push to ResponsiPemweb_6_Bali main branch.",
   "project_tags": ["git", "version-control"]
 }
 
