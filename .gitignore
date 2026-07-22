@@ -1,1 +1,7 @@
+<<<<<<< HEAD
    target/
+=======
+﻿venv/
+__pycache__/
+*.pyc
+>>>>>>> 6205a56 (feat(llm-inference): stabilize 5W1H schema parsing, fix JSON decode crashes, and add baseline evaluation pipeline)

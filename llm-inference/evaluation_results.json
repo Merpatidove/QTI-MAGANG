@@ -1,0 +1,992 @@
+[
+  {
+    "ticket_id": "TKT-1001",
+    "inference_time_sec": 14.18,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1001",
+      "5w1h_output": {
+        "who": "Database connection pool",
+        "what": "Connection timed out error occurred during SQL query execution",
+        "where": "/var/www/eventin/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:70",
+        "when": "2026-07-10 11:20:00",
+        "why": "High demand for database connections leading to timeouts due to insufficient idle connections",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1002",
+    "inference_time_sec": 11.29,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1002",
+      "5w1h_output": {
+        "who": "billing-service-worker-1",
+        "what": "Failed to write to laravel.log due to permission denied error",
+        "where": "/var/www/html/storage/logs/laravel.log",
+        "when": "2026-07-10 12:04:00",
+        "why": "The container runs as uid=1000(www-data), but the host bind-mount is owned by uid=0(root)",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1003",
+    "inference_time_sec": 11.23,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1003",
+      "5w1h_output": {
+        "who": "eventin-worker-1",
+        "what": "SQL connection attempts failed due to 'No route to host' error",
+        "where": "/path/to/docker-compose.yml",
+        "when": "[2026-07-10 14:19:00]",
+        "why": "MySQL InnoDB crash recovery on restart caused `db` service to be healthy before the worker could establish a connection",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1004",
+    "inference_time_sec": 11.6,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1004",
+      "5w1h_output": {
+        "who": "spk-saw-umkm-worker-1",
+        "what": "Health check failed and Nginx unable to bind to port 80.",
+        "where": "/var/log/nginx/error.log",
+        "when": "[2026-07-10 13:43:00]",
+        "why": "Two replicas of spk-saw-umkm-worker-1 are racing for the same host port, causing a bind conflict.",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1005",
+    "inference_time_sec": 11.61,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1005",
+      "5w1h_output": {
+        "who": "staging database service",
+        "what": "SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded; try restarting transaction",
+        "where": "attendance_logs table in db-staging-01.internal",
+        "when": "2026-07-10 10:48:00",
+        "why": "A long-running report query is holding a lock on the `attendance_logs` table, preventing migration from proceeding.",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1006",
+    "inference_time_sec": 9.91,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1006",
+      "5w1h_output": {
+        "who": "Rangga A",
+        "what": "Failed git push due to non-fast-forward update",
+        "where": "git.internal:presensi-akademik.git",
+        "when": "<current_timestamp>",
+        "why": "Pushed branch tip is behind its remote counterpart. Rangga A checked out a specific commit without creating a branch first.",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1007",
+    "inference_time_sec": 11.48,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1007",
+      "5w1h_output": {
+        "who": "presensi-akademik-worker-1",
+        "what": "Service is restarting due to a database connection issue",
+        "where": "/path/to/docker-compose.yml",
+        "when": "2026-07-10 13:01:00",
+        "why": "`db` service fails healthcheck before MySQL finishes InnoDB crash recovery on restart, leading to 'No route to host' error",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1008",
+    "inference_time_sec": 10.8,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1008",
+      "5w1h_output": {
+        "who": "MySQL service",
+        "what": "Too many connections error",
+        "where": "/var/www/eventin/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:70",
+        "when": "2026-07-10 10:27:00",
+        "why": "The application attempted to connect to the database but exceeded the maximum number of allowed connections.",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1009",
+    "inference_time_sec": 9.17,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1009",
+      "5w1h_output": {
+        "who": "User performing a git rebase",
+        "what": "Git merge conflict in app/Models/User.php",
+        "where": "app/Models/User.php",
+        "when": "N/A",
+        "why": "Content discrepancy between local branch and remote origin/main",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1010",
+    "inference_time_sec": 9.21,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1010",
+      "5w1h_output": {
+        "who": "Git merge process",
+        "what": "Merge conflict in composer.lock",
+        "where": "composer.lock file",
+        "when": "Now",
+        "why": "Both johan.p and rangga.a edited the same route group block within the last hour",
+        "how": "Fix conflicts manually and then commit the result"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1011",
+    "inference_time_sec": 11.7,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1011",
+      "5w1h_output": {
+        "who": "eventin-nginx-1",
+        "what": "Docker container exited with code 137 due to out of memory error.",
+        "where": "/var/lib/docker/containers/eventin-nginx-1",
+        "when": "[2026-07-10 12:38:00]",
+        "why": "Out of memory error (OOMKilled) triggered by PHP-FPM max_children limit and large CSV export job.",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1012",
+    "inference_time_sec": 9.82,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1012",
+      "5w1h_output": {
+        "who": "Git user rangga.a and dwi.k",
+        "what": "Merge conflict in composer.lock file due to differing line endings",
+        "where": "composer.lock",
+        "when": "<Not specified>",
+        "why": "core.autocrlf=true on Windows vs. LF endings from WSL",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1013",
+    "inference_time_sec": 11.04,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1013",
+      "5w1h_output": {
+        "who": "billing-service-app-1",
+        "what": "Health check failed and nginx error due to port conflict",
+        "where": "/etc/nginx/nginx.conf, docker-compose.yml",
+        "when": "2026-07-10 12:48:00",
+        "why": "Two replicas of billing-service-app-1 attempting to use the same host port (80)",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1014",
+    "inference_time_sec": 9.88,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1014",
+      "5w1h_output": {
+        "who": "Git merge conflict in release/1.4.0 branch",
+        "what": "Merge conflict occurred in package-lock.json",
+        "where": "package-lock.json",
+        "when": "<Timestamp of the git pull command>",
+        "why": "Two teammates ran composer update/npm install independently before pushing, leading to version discrepancies",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1015",
+    "inference_time_sec": 8.82,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1015",
+      "5w1h_output": {
+        "who": "Git user",
+        "what": "Merge conflict in app/Models/User.php",
+        "where": "app/Models/User.php",
+        "when": "<current timestamp>",
+        "why": "Conflicting updates from two teammates",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1016",
+    "inference_time_sec": 10.52,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1016",
+      "5w1h_output": {
+        "who": "composer in Docker build",
+        "what": "Fatal error due to Composer version mismatch and missing class 'Symfony\\Component\\Process\\Process'",
+        "where": "/app/vendor/composer/installed.php",
+        "when": "<Current timestamp>",
+        "why": "Composer lock file was generated with a different version of Composer than the one in the Docker image (2.7 vs 2.2)",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1017",
+    "inference_time_sec": 12.14,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1017",
+      "5w1h_output": {
+        "who": "db-prod-03.internal",
+        "what": "SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded; try restarting transaction",
+        "where": "/path/to/artisan.php, /path/to/vendor/laravel/framework/src/Illuminate/Database/Schema/Blueprint.php",
+        "when": "2026-07-10 08:31:00",
+        "why": "Another long-running report query is holding a lock on `users` table",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1018",
+    "inference_time_sec": 10.53,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1018",
+      "5w1h_output": {
+        "who": "johan.p, fajar.m",
+        "what": "Git merge conflict in database/migrations/2026_07_01_add_status_column.php",
+        "where": "database/migrations/2026_07_01_add_status_column.php",
+        "when": "<current timestamp>",
+        "why": "Both users modified the same block within the last hour",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1019",
+    "inference_time_sec": 11.29,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1019",
+      "5w1h_output": {
+        "who": "eventin-worker-1",
+        "what": "Failed to write to /var/www/html/storage/logs/laravel.log due to permission denied",
+        "where": "/var/www/html/storage/logs",
+        "when": "2026-07-10 14:06:00",
+        "why": "Container runs as uid=1000(www-data), but the log file and directory are owned by uid=0(root)",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1020",
+    "inference_time_sec": 9.36,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1020",
+      "5w1h_output": {
+        "who": "Git merge by users rangga.a and johan.p",
+        "what": "Merge conflict in package-lock.json",
+        "where": "package-lock.json",
+        "when": "<Current timestamp>",
+        "why": "Both users edited the same route group block within the last hour, causing a content conflict during merge",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1021",
+    "inference_time_sec": 9.54,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1021",
+      "5w1h_output": {
+        "who": "dwi.k and sinta.w",
+        "what": "Git merge conflict in composer.lock due to differing line endings",
+        "where": "composer.lock",
+        "when": "Current timestamp",
+        "why": "core.autocrlf=true on Windows vs LF endings committed from WSL",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1022",
+    "inference_time_sec": 10.09,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1022",
+      "5w1h_output": {
+        "who": "Johan P",
+        "what": "Failed git push due to non-fast-forward rejection",
+        "where": "Git repository hite-core.git",
+        "when": "<Timestamp of the incident>",
+        "why": "Pushed branch tip is behind its remote counterpart because Johan did not create a new branch before making changes while detached at a specific commit",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1023",
+    "inference_time_sec": 10.67,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1023",
+      "5w1h_output": {
+        "who": "replica db-staging-02.internal",
+        "what": "Read query returned stale data due to replica lag",
+        "where": "/event_registrations",
+        "when": "2026-07-10 11:16:00",
+        "why": "Replica lag reported by Seconds_Behind_Master: 47",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1024",
+    "inference_time_sec": 11.33,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1024",
+      "5w1h_output": {
+        "who": "docker container hite-core-scheduler-1",
+        "what": "Health check failed and address already in use error in nginx",
+        "where": "/var/log/nginx/error.log",
+        "when": "[2026-07-10 15:11:00]",
+        "why": "Two replicas of hite-core-scheduler-1 are racing for the same host port after a docker compose up --scale change",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1025",
+    "inference_time_sec": 10.12,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1025",
+      "5w1h_output": {
+        "who": "redis-inventory-api service",
+        "what": "Connection refused error",
+        "where": "/var/www/inventory-api/vendor/predis/predis/src/Connection/AbstractConnection.php",
+        "when": "[2026-07-10 09:41:00]",
+        "why": "Repeated client disconnects every ~10s",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1026",
+    "inference_time_sec": 11.51,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1026",
+      "5w1h_output": {
+        "who": "presensi-akademik-worker-1",
+        "what": "Worker service is restarting due to failed database connection.",
+        "where": "/docker-compose.yml",
+        "when": "2026-07-10 12:27:00",
+        "why": "No route to host error when attempting to connect to the `db` service, likely due to MySQL's InnoDB crash recovery on restart.",
+        "how": "Pending SOP search for database connectivity issues after restart."
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1027",
+    "inference_time_sec": 10.51,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1027",
+      "5w1h_output": {
+        "who": "replica db-prod-01.internal",
+        "what": "stale data read from replica database",
+        "where": "/replica/db-prod-01/internal/orders",
+        "when": "2026-07-10 09:00:00",
+        "why": "Seconds_Behind_Master reported by 47, indicating a replication delay",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1028",
+    "inference_time_sec": 11.75,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1028",
+      "5w1h_output": {
+        "who": "billing-service-worker-1",
+        "what": "Permission denied error when trying to write to /var/www/html/storage/logs/laravel.log",
+        "where": "/var/www/html/storage/logs/laravel.log",
+        "when": "2026-07-10 12:53:00",
+        "why": "Container runs as uid=1000(www-data), but the host bind-mount is owned by uid=0(root)",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1029",
+    "inference_time_sec": 11.13,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1029",
+      "5w1h_output": {
+        "who": "production environment",
+        "what": "SQL connection timed out",
+        "where": "/var/www/hite-core/app/Http/Controllers/UsersController.php",
+        "when": "2026-07-10 10:14:00",
+        "why": "High connection pool usage with a wait queue, possibly due to slow queries or insufficient resources",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1030",
+    "inference_time_sec": 11.82,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1030",
+      "5w1h_output": {
+        "who": "Inventory API service",
+        "what": "Database connection timed out",
+        "where": "/var/www/inventory-api/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:70",
+        "when": "2026-07-10 08:15:00",
+        "why": "Connection pool is at full capacity (active=98/100, wait_queue=14)",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1031",
+    "inference_time_sec": 10.78,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1031",
+      "5w1h_output": {
+        "who": "mysql service",
+        "what": "Too many connections error",
+        "where": "/var/www/inventory-api/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:70",
+        "when": "2026-07-10 08:21:00",
+        "why": "The number of connections to the MySQL database has exceeded the maximum allowed limit.",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1032",
+    "inference_time_sec": 9.87,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1032",
+      "5w1h_output": {
+        "who": "User performing 'git submodule update'",
+        "what": "Error encountered while updating git submodule due to local changes",
+        "where": "packages/inventory-api-shared-ui/src/components/Table.vue",
+        "when": "<Timestamp of the incident>",
+        "why": "Local changes in the submodule would be overwritten by checkout",
+        "how": "Commit or stash your local changes before switching branches"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1033",
+    "inference_time_sec": 12.29,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1033",
+      "5w1h_output": {
+        "who": "spk-saw-umkm-app-1",
+        "what": "Docker container crash due to out of memory and max children limit reached",
+        "where": "/var/lib/docker/containers/spk-saw-umkm-app-1",
+        "when": "2026-07-10 13:23:00",
+        "why": "Insufficient memory allocated to the container or too many workers being spawned",
+        "how": "Increase memory allocation for the container, adjust pm.max_children in php-fpm configuration"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1034",
+    "inference_time_sec": 12.79,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1034",
+      "5w1h_output": {
+        "who": "Laravel application",
+        "what": "SQL connection timed out while querying attendance_logs table",
+        "where": "/var/www/presensi-akademik/app/Http/Controllers/Attendance_logsController.php:31",
+        "when": "[2026-07-10 09:14:00]",
+        "why": "Possible database server issue or network connectivity problem between the application and db-staging-01.internal",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1035",
+    "inference_time_sec": 10.87,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1035",
+      "5w1h_output": {
+        "who": "redis-spk-saw-umkm service",
+        "what": "Connection refused error from Redis service",
+        "where": "/var/www/spk-saw-umkm/vendor/predis/predis/src/Connection/AbstractConnection.php:187",
+        "when": "2026-07-10 08:47:00",
+        "why": "Repeated client disconnects causing connection refusal",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1036",
+    "inference_time_sec": 9.92,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1036",
+      "5w1h_output": {
+        "who": "Rangga A (user)",
+        "what": "Git push failure due to non-fast-forward update",
+        "where": "git.internal:billing-service.git, feature/checkout-flow branch",
+        "when": "Current timestamp",
+        "why": "Rangga A checked out a specific commit and forgot to create a branch before making changes",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1037",
+    "inference_time_sec": 9.61,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1037",
+      "5w1h_output": {
+        "who": "Docker build process",
+        "what": "Composer install failed due to missing class and version mismatch",
+        "where": "/app/vendor/composer/installed.php",
+        "when": "<Timestamp of the error>",
+        "why": "Class not found and composer version mismatch",
+        "how": "Pending SOP search for 'docker build with composer issues'"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1038",
+    "inference_time_sec": 12.06,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1038",
+      "5w1h_output": {
+        "who": "spk-saw-umkm-app-1",
+        "what": "Docker container crashed due to out of memory and exceeding max children limit",
+        "where": "/var/lib/docker/containers/spk-saw-umkm-app-1",
+        "when": "2026-07-10 14:55:00",
+        "why": "Insufficient memory allocated for PHP-FPM and the application attempted to export a large CSV file, exhausting available memory",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1039",
+    "inference_time_sec": 9.5,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1039",
+      "5w1h_output": {
+        "who": "Git merge conflict",
+        "what": "Conflict in resources/views/livewire/dashboard.blade.php",
+        "where": "resources/views/livewire/dashboard.blade.php",
+        "when": "<not specified>",
+        "why": "Two teammates updated dependencies independently before pushing, causing a conflict during git pull",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1040",
+    "inference_time_sec": 8.83,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1040",
+      "5w1h_output": {
+        "who": "Git user",
+        "what": "Merge conflict in package-lock.json",
+        "where": "package-lock.json",
+        "when": "Current timestamp",
+        "why": "Conflict due to changes in dependency versions",
+        "how": "Resolve conflicts manually and run 'git rebase --continue'"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1041",
+    "inference_time_sec": 10.7,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1041",
+      "5w1h_output": {
+        "who": "docker build process",
+        "what": "Composer install failed due to missing Symfony component class and composer version mismatch.",
+        "where": "/app/vendor/composer/installed.php",
+        "when": "<current timestamp>",
+        "why": "Composer version mismatch between lock file (composer 2.7) and installed image (composer 2.2). Symfony component class not found suggests a missing dependency.",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1042",
+    "inference_time_sec": 11.86,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1042",
+      "5w1h_output": {
+        "who": "horizon worker for queue=`exports` and redis-presensi-akademik service",
+        "what": "Connection refused error in Redis connection",
+        "where": "/var/www/presensi-akademik/vendor/predis/predis/src/Connection/AbstractConnection.php:187",
+        "when": "[2026-07-10 10:55:00]",
+        "why": "Repeated client disconnects every ~10s in redis-presensi-akademik service",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1043",
+    "inference_time_sec": 5.76,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1043",
+      "5w1h_output": {
+        "who": "user",
+        "what": "Git submodule update failed due to local changes and untracked files",
+        "where": "packages/hite-core-shared-ui",
+        "when": "<current timestamp>",
+        "why": "Local changes in the submodule would be overwritten",
+        "how": "Commit or stash changes before updating submodule"
+      },
+      "action_taken": "none",
+      "result": "No action taken."
+    }
+  },
+  {
+    "ticket_id": "TKT-1044",
+    "inference_time_sec": 10.63,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1044",
+      "5w1h_output": {
+        "who": "hite-core-worker-1 and nginx",
+        "what": "Health check failed due to connection refusal and address already in use error",
+        "where": "/var/log/nginx/error.log",
+        "when": "2026-07-10 11:53:00",
+        "why": "Two replicas of hite-core-worker-1 are racing for the same host port",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1045",
+    "inference_time_sec": 11.5,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1045",
+      "5w1h_output": {
+        "who": "inventory-api-nginx-1 container",
+        "what": "Out of memory error causing the container to crash",
+        "where": "/var/lib/docker/containers/inventory-api-nginx-1",
+        "when": "[2026-07-10 11:41:00]",
+        "why": "Exhausted memory due to large CSV export job and pm.max_children limit reached",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1046",
+    "inference_time_sec": 11.91,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1046",
+      "5w1h_output": {
+        "who": "user nadia.r and replica db-prod-03.internal",
+        "what": "Stale data returned on read query from replica database leading to 'not found' error for newly created event_registration record",
+        "where": "replica db-prod-03.internal",
+        "when": "[2026-07-10 10:06:00]",
+        "why": "Replica lag causing stale data issue",
+        "how": "Pending SOP search for handling database replica lag and ensuring up-to-date data retrieval"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1047",
+    "inference_time_sec": 9.03,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1047",
+      "5w1h_output": {
+        "who": "Git user",
+        "what": "Merge conflict in app/Models/User.php during rebase",
+        "where": "app/Models/User.php",
+        "when": "<Current timestamp>",
+        "why": "Content conflict between branch and origin/main",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1048",
+    "inference_time_sec": 10.54,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1048",
+      "5w1h_output": {
+        "who": "MySQL database server",
+        "what": "Too many connections error",
+        "where": "/var/www/billing-service",
+        "when": "2026-07-10 09:19:00",
+        "why": "Exceeded maximum number of allowed connections (max_connections=150)",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1049",
+    "inference_time_sec": 12.2,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1049",
+      "5w1h_output": {
+        "who": "Database system",
+        "what": "Migration stuck due to lock wait timeout",
+        "where": "/app/database/migrations/<timestamp>_add_synced_at_to_event_registrations.php",
+        "when": "2026-07-10 09:24:00",
+        "why": "Long-running report query is holding a lock on `event_registrations` table",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1050",
+    "inference_time_sec": 11.81,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1050",
+      "5w1h_output": {
+        "who": "mysql",
+        "what": "Too many connections error while inserting into `invoices` table",
+        "where": "/var/www/hite-core/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:70",
+        "when": "[2026-07-10 11:35:00]",
+        "why": "The number of connected threads exceeds the maximum allowed connections (max_connections=150)",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1051",
+    "inference_time_sec": 9.65,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1051",
+      "5w1h_output": {
+        "who": "ferdi",
+        "what": "Attempted to delete the /usr/share/ollama directory as root using sudo.",
+        "where": "/home/ferdi",
+        "when": "Jul 15 13:12:36",
+        "why": "Misuse of sudo or accidental command execution.",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1052",
+    "inference_time_sec": 10.01,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1052",
+      "5w1h_output": {
+        "who": "pod/api-gateway-5777bc44c-5mbks",
+        "what": "Failed to pull image ghcr.io/merpatidove/qti-api-gateway:latest",
+        "where": "ghcr.io",
+        "when": "57m ago",
+        "why": "Permission issue (403 Forbidden)",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1053",
+    "inference_time_sec": 11.74,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1053",
+      "5w1h_output": {
+        "who": "pod/prometheus-kube-state-metrics-57c8d67ff4-sgc8v",
+        "what": "Liveness probe failed with HTTP status code 503",
+        "where": "/var/log/kubernetes/pods/prometheus-kube-state-metrics-57c8d67ff4-sgc8v/",
+        "when": "31m ago",
+        "why": "The application is not responding to health checks, likely due to an error or misconfiguration.",
+        "how": "Pending SOP search for 'kubernetes liveness probe failed 503'"
+      },
+      "action_taken": "search_sop",
+      "result": "Error executing search_sop: HTTPConnectionPool(host='rag-service', port=8000): Max retries exceeded with url: /search (Caused by NameResolutionError(\"HTTPConnection(host='rag-service', port=8000): Failed to resolve 'rag-service' ([Errno 11001] getaddrinfo failed)\"))"
+    }
+  },
+  {
+    "ticket_id": "TKT-1054",
+    "inference_time_sec": 5.63,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1054",
+      "5w1h_output": {
+        "who": "ferdi (user)",
+        "what": "Disconnected from the SSH session",
+        "where": "DEBIAN13",
+        "when": "Jul 14 17:18:48",
+        "why": "Unknown, routine user logout",
+        "how": "No action required"
+      },
+      "action_taken": "none",
+      "result": "No action taken."
+    }
+  },
+  {
+    "ticket_id": "TKT-1055",
+    "inference_time_sec": 5.11,
+    "status_code": 200,
+    "5w1h_output": {
+      "ticket_id": "TKT-1055",
+      "5w1h_output": {
+        "who": "argocd",
+        "what": "Sync operation completed successfully",
+        "where": "application/qti-api-gateway",
+        "when": "8m13s ago",
+        "why": "Operation was successful",
+        "how": "Pending SOP search"
+      },
+      "action_taken": "none",
+      "result": "No action taken."
+    }
+  }
+]
