@@ -12,8 +12,11 @@ spec:
     chart: loki-stack
     targetRevision: 2.10.3
     helm:
-      valueFiles:
-        - $repo/k8s/loki/values.yaml
+      values: |
+        loki:
+          isDefault: false
+        promtail:
+          enabled: true
   destination:
     server: https://kubernetes.default.svc
     namespace: monitoring
