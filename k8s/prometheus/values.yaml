@@ -1,0 +1,108 @@
+# ========================================================
+# KUBE-PROMETHEUS-STACK PRODUCTION CONFIGURATION
+# ========================================================
+
+# 1. ALERTMANAGER
+# Dinonaktifkan untuk menghemat RAM (±500MB). 
+# Aktifkan kembali di masa depan jika sudah butuh sistem notifikasi.
+alertmanager:
+  enabled: false
+
+# 2. PROMETHEUS
+prometheus:
+  prometheusSpec:
+    # --- PERBAIKAN NFS PERMISSION ---
+    # Menghindari bentrok permission (chown) pada NFS Storage
+    securityContext:
+      fsGroup: 1000
+      runAsUser: 1000
+      runAsGroup: 1000
+      runAsNonRoot: true
+
+    # Memastikan pod hanya berjalan di worker, tidak di controller (VM Ferdi)
+    affinity:
+      nodeAffinity:
+        requiredDuringSchedulingIgnoredDuringExecution:
+          nodeSelectorTerms:
+            - matchExpressions:
+                - key: kubernetes.io/hostname
+                  operator: In
+                  values:
+                    - worker-1
+                    - worker-2
+
+    # Pengaturan Offline-Ready & Efisiensi
+    imagePullPolicy: IfNotPresent
+
+    # RETENSI JANGKA PANJANG (Efisiensi Disk)
+    retention: 7d
+    retentionSize: "10GiB"
+
+    # PENYIMPANAN PERMANEN (NFS)
+    storageSpec:
+      volumeClaimTemplate:
+        spec:
+          storageClassName: "nfs-csi"
+          accessModes: ["ReadWriteOnce"]
+          resources:
+            requests:
+              storage: 12Gi
+
+    # PEMBATASAN RESOURCE (Mencegah OOM Killer)
+    resources:
+      requests:
+        memory: "500Mi"
+        cpu: "250m"
+      limits:
+        memory: "1500Mi"
+        cpu: "1000m"
+
+# 3. GRAFANA
+grafana:
+  image:
+    pullPolicy: IfNotPresent
+
+  # Memastikan pod berjalan di worker
+  affinity:
+    nodeAffinity:
+      requiredDuringSchedulingIgnoredDuringExecution:
+        nodeSelectorTerms:
+          - matchExpressions:
+              - key: kubernetes.io/hostname
+                operator: In
+                values:
+                  - worker-1
+                  - worker-2
+
+  # PERSISTENSI DASHBOARD (NFS)
+  persistence:
+    enabled: true
+    storageClassName: "nfs-csi"
+    type: pvc
+    accessModes:
+      - ReadWriteOnce
+    size: 2Gi
+
+  # PEMBATASAN RESOURCE
+  resources:
+    requests:
+      memory: "150Mi"
+      cpu: "100m"
+    limits:
+      memory: "300Mi"
+      cpu: "300m"
+
+  # AKSES EKSTERNAL
+  service:
+    type: NodePort
+    nodePort: 30000
+
+# 4. NODE EXPORTER (Ringan)
+prometheus-node-exporter:
+  resources:
+    limits:
+      cpu: 100m
+      memory: 100Mi
+    requests:
+      cpu: 50m
+      memory: 50Mi
