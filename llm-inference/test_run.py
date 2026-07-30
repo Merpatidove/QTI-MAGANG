@@ -22,12 +22,20 @@ for index, ticket in enumerate(tickets):
     start_time = time.time()
     
     # Handle both dictionary objects and raw string inputs gracefully
-    payload = ticket if isinstance(ticket, dict) else {"ticket_content": ticket}
-    ticket_id = payload.get("ticket_id", f"TICKET_{index+1}")
+    raw_payload = ticket if isinstance(ticket, dict) else {"ticket_content": ticket}
+    ticket_id = raw_payload.get("ticket_id", f"TICKET_{index+1}")
     
+    # ✅ FIX 1: Map the dataset fields to the Rust backend's strict QueryRequest schema
+    rust_payload = {
+        "ticket_id": ticket_id,
+        "raw_text": raw_payload.get("ticket_content", raw_payload.get("raw_text", "Unknown content")),
+        "project_tags": raw_payload.get("project_tags", [])
+    }
+    
+    # ✅ FIX 2: Point to the correct port (8080) and endpoint (/v1/query)
     response = requests.post(
-        "http://127.0.0.1:8000/process-ticket", 
-        json=payload
+        "http://127.0.0.1:8080/v1/query", 
+        json=rust_payload
     )
     
     process_time = round(time.time() - start_time, 2)
@@ -39,7 +47,7 @@ for index, ticket in enumerate(tickets):
         "5w1h_output": response.json() if response.status_code == 200 else response.text
     }
     
-    print(f"Processed {ticket_id} in {process_time}s")
+    print(f"Processed {ticket_id} in {process_time}s (Status: {response.status_code})")
     evaluation_data.append(result_entry)
 
 with open(results_path, "w") as f:
