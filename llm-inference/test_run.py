@@ -1,4 +1,5 @@
 import json
+import os
 import time
 import requests
 from pathlib import Path
@@ -32,9 +33,11 @@ for index, ticket in enumerate(tickets):
         "project_tags": raw_payload.get("project_tags", [])
     }
     
-    # ✅ FIX 2: Point to the correct port (8080) and endpoint (/v1/query)
+    # ✅ FIX 2: Point to the API Gateway NodePort (Tailscale worker-2) /v1/query.
+    # Override with QTI_API_URL env var if needed (e.g. a local SSH tunnel).
+    api_url = os.environ.get("QTI_API_URL", "http://100.106.122.68:30082/v1/query")
     response = requests.post(
-        "http://127.0.0.1:8080/v1/query", 
+        api_url,
         json=rust_payload
     )
     
