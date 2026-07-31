@@ -24,6 +24,8 @@ spec:
               value: "http://qdrant.qdrant.svc.cluster.local:6333"
             - name: INFERENCE_URL
               value: "http://inference-mac-mini:8080"
+            - name: EMBED_CACHE_DIR
+              value: "/opt/fastembed"
           resources:
             requests:
               cpu: 100m
