@@ -9,4 +9,4 @@ resources:
 images:
   - name: api-gateway
     newName: ghcr.io/merpatidove/qti-api-gateway
-    newTag: 3488897
+    newTag: a0b4bec
