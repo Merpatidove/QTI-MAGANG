@@ -1,4 +1,11 @@
+# Build artifacts (Rust)
 target/
-.fastembed_cache/
 *.pdb
 *.exe
+.fastembed_cache/
+
+# Python artifacts (DS lane, per guidebook 1.3.4)
+venv/
+.venv/
+__pycache__/
+*.pyc

@@ -1,3 +1,4 @@
+import os
 import json
 import re
 import requests
@@ -9,8 +10,16 @@ from tools import search_sop, execute_safe_cli
 
 app = FastAPI()
 
-MAC_MINI_OLLAMA_URL = "http://192.168.100.35:11434/api/generate"
-MODEL_NAME = "hf.co/stefancosma/Qwen2.5-Coder-7B-Instruct-Q4_K_M-GGUF:latest"
+# Ollama is reached via the SSH tunnel:  ssh -L 11434:10.10.10.2:11434 ferdi@100.94.99.125
+# which exposes the Mac Mini's Ollama at localhost:11434.
+# Fix C: was the stale, unreachable 192.168.100.35.
+OLLAMA_BASE = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
+MAC_MINI_OLLAMA_URL = f"{OLLAMA_BASE}/api/generate"
+MODEL_NAME = os.environ.get(
+    "OLLAMA_MODEL",
+    "hf.co/stefancosma/Qwen2.5-Coder-7B-Instruct-Q4_K_M-GGUF:latest",
+)
+
 
 # Flexible Pydantic model to handle all ticket payload variations in the golden dataset
 class Ticket(BaseModel):
@@ -66,7 +75,8 @@ def call_ollama(prompt: str) -> dict:
         "format": "json"
     }
     try:
-        response = requests.post(MAC_MINI_OLLAMA_URL, json=payload, timeout=45)
+        # Fix C: timeout 45 -> 300 (first ticket cold-loads the 4.7GB model over the tunnel)
+        response = requests.post(MAC_MINI_OLLAMA_URL, json=payload, timeout=300)
         response.raise_for_status()
         raw_output = response.json().get("response", "")
         return clean_and_parse_json(raw_output)
@@ -83,7 +93,7 @@ def process_ticket(ticket: Ticket):
     ticket_text = ticket.content
     if not ticket_text:
         raise HTTPException(
-            status_code=400, 
+            status_code=400,
             detail="No ticket content provided (checked raw_text, ticket_content, description, log, content)."
         )
 
@@ -92,7 +102,7 @@ def process_ticket(ticket: Ticket):
     decision_data = call_ollama(initial_prompt)
 
     tool_name = decision_data.get("tool")
-    
+
     # Defend against "params": null from LLM output
     params = decision_data.get("params")
     if not isinstance(params, dict):
@@ -115,15 +125,20 @@ def process_ticket(ticket: Ticket):
         except Exception as e:
             tool_output = f"Error executing execute_safe_cli: {str(e)}"
 
-    # Step 3: Synthesis Phase if tool output was retrieved
+    # Step 3: Synthesis Phase if usable tool output was retrieved
     if tool_output and "Error" not in str(tool_output):
+        # Fix E: constrain the synthesis output to the exact six 5W1H keys so the
+        # grounded path reliably emits who/what/where/when/why/how.
         synthesis_prompt = f"""
 Given the ticket below and the retrieved SOP content, output the final JSON response.
 
 Ticket: {ticket_text}
 Retrieved SOP Context: {tool_output}
 
-Return JSON with keys: 'ticket_id', '5w1h_analysis', 'action_taken', and 'result'.
+Return ONLY valid JSON with keys: 'ticket_id', '5w1h_analysis', 'action_taken', 'result'.
+'5w1h_analysis' MUST be a JSON object with EXACTLY these six keys, all non-empty strings:
+who, what, where, when, why, how. Ground 'why' and 'how' in the retrieved SOP context.
+Do NOT surround the JSON with markdown code blocks.
 """
         final_response = call_ollama(synthesis_prompt)
     else:
@@ -131,7 +146,7 @@ Return JSON with keys: 'ticket_id', '5w1h_analysis', 'action_taken', and 'result
 
     # Step 4: Fallback extraction for analysis payload
     analysis_output = (
-        final_response.get("5w1h_analysis") 
+        final_response.get("5w1h_analysis")
         or final_response.get("5w1h_output")
         or final_response.get("analysis")
         or final_response

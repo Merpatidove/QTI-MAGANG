@@ -1,827 +1,882 @@
 [
   {
     "ticket_id": "TKT-1001",
-    "inference_time_sec": 0.24,
+    "inference_time_sec": 16.39,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1001",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "production database connection",
+      "what": "Connection timed out while trying to fetch users from the 'users' table",
+      "where": "/var/www/eventin/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php",
+      "when": "2026-07-10 11:20:00",
+      "why": "Connection pool is at full capacity with no idle connections available, leading to a timeout when attempting to fetch data",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-001 MySQL Connection Timeout (SQLSTATE 2002): ## Context\nError Signature: SQLSTATE[HY000] [2002] Connection timed out, thrown from Illuminate\\Database\\Connectors\\Connector during a query, usually accompanied by a connection-pool status line showing active connections near the configured maxim",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1002",
-    "inference_time_sec": 0.29,
+    "inference_time_sec": 10.72,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1002",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "billing-service-worker-1",
+      "what": "Failed to write to laravel.log due to permission denied",
+      "where": "/var/www/html/storage/logs/laravel.log",
+      "when": "2026-07-10 12:04:00",
+      "why": "Container runs as uid=1000(www-data), while the log file is owned by root (uid=0)",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-003 Volume Mount Permission Denied: ## Context\nError Signature: \"failed to write to /var/www/html/storage/logs/laravel.log: Permission denied\"; `ls -la` inside the container shows the log directory owned by `root` while the container process runs as a non-root user.\nThis occurs when a bind-m",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1003",
-    "inference_time_sec": 0.2,
+    "inference_time_sec": 11.67,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1003",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "eventin-worker-1",
+      "what": "Failed to connect to the database service (`eventin-db-1`) after a restart.",
+      "where": "/docker-compose.yml",
+      "when": "2026-07-10 14:19:00",
+      "why": "MySQL is experiencing InnoDB crash recovery and hasn't fully started when the `depends_on` healthcheck on `db` passes.",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-004 Dependency Crash Loop (depends_on Race): ## Context\nError Signature: a worker container repeatedly restarts with \"No route to host\" or SQLSTATE 2002 while the `db` service shows as `healthy` in `docker compose ps`; worker logs show retry attempts counting up to a fixed maximum before exi",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1004",
-    "inference_time_sec": 0.5,
+    "inference_time_sec": 34.39,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1004",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "The system",
+      "what": "A health check failure and an error in nginx indicating a port already in use for the service 'spk-saw-umkm-worker-1'.",
+      "where": "On the host where Docker is running.",
+      "when": "2 minutes ago, as indicated by the ticket timestamp.",
+      "why": "Two replicas of 'spk-saw-umkm-worker-1' attempted to use the same port (80) after a `docker compose up --scale` change. This led to a port conflict and subsequent health check failures.",
+      "how": "The service was brought back up at the intended scale using the command: `docker compose up -d --scale app=1 --no-recreate`. The `--no-recreate` flag ensures that existing containers are not removed, only their services are scaled."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-002 Healthcheck Failing — Port Already in Use: # 3. Bring the service back up at the intended scale\ndocker compose up -d --scale app=1 --no-recreate\n```\nVerification: `docker ps` shows the service as `healthy`, and `curl localhost:8080` returns a normal HTTP response.\n\n---",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1005",
-    "inference_time_sec": 0.21,
+    "inference_time_sec": 11.26,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1005",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "Database migration process",
+      "what": "Lock wait timeout exceeded during table alteration",
+      "where": "/path/to/database/migrations/xxxx_xx_xx_000000_alter_attendance_logs_table.php",
+      "when": "2026-07-10 10:48:00",
+      "why": "Long-running report query is holding a lock on `attendance_logs` table",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-003 Migration Lock Wait Timeout (Error 1205): ## Context\nError Signature: SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded, raised during an `ALTER TABLE` statement run via `php artisan migrate --force`, with the migration appearing to hang for several minutes before failing.\nT",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1006",
-    "inference_time_sec": 0.15,
+    "inference_time_sec": 22.51,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1006",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "Rangga.A",
+      "what": "Pushing a commit to a remote branch in a non-fast-forward manner",
+      "where": "git.internal:presensi-akademik.git",
+      "when": "Not specified in the ticket, but likely at some point after Rangga.A checked out a specific commit for hotfix testing without creating a branch first.",
+      "why": "Rangga.A forgot to create a branch before making changes, resulting in a detached HEAD state. This prevents a fast-forward merge when pushing, triggering a non-fast-forward rejection per SOP-GIT-003.",
+      "how": "To resolve this issue, Rangga.A should have created a new branch from the commit and pushed there instead of directly pushing the HEAD."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-GIT-003 Detached HEAD / Non-Fast-Forward Push Rejection: GIT-003: Detached HEAD / Non-Fast-Forward Push Rejection\nSOP_ID: SOP-GIT-003\nCategory: Git\nConfidence_Tier: B\nTags: git, version-control, branching",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1007",
-    "inference_time_sec": 0.31,
+    "inference_time_sec": 23.63,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1007",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "The system administrator responsible for managing the Docker Compose environment.",
+      "what": "The issue of a dependency crash loop detected between the 'worker' and 'db' services.",
+      "where": "In the Docker Compose environment, specifically with the 'presensi-akademik-worker-1' service.",
+      "when": "Around 13:01 on July 10, 2026, as recorded in the logs.",
+      "why": "The dependency healthcheck for the 'db' service passed too early, allowing the 'worker' service to start before MySQL finishes InnoDB crash recovery.",
+      "how": "By tightening the healthcheck to reflect true readiness with a longer start_period to cover crash-recovery time (30s)."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-004 Dependency Crash Loop (depends_on Race): # 2. Tighten the healthcheck to reflect true readiness, with a longer\n#    start_period to cover crash-recovery time (docker-compose.yml):\n#    healthcheck:\n#      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"localhost\"]\n#      interval: 5s\n#      r",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1008",
-    "inference_time_sec": 0.21,
+    "inference_time_sec": 10.32,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1008",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "MySQL database",
+      "what": "Too many connections error during an insert operation",
+      "where": "/var/www/eventin/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php",
+      "when": "2026-07-10 10:27:00",
+      "why": "The number of active connections exceeded the maximum allowed connections.",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-002 MySQL Too Many Connections (SQLSTATE 1040): ## Context\nError Signature: SQLSTATE[HY000] [1040] Too many connections, typically thrown from a queue worker or artisan command, with `Threads_connected` at or above `max_connections` in the MySQL status output.\nThis happens when the number of ",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1009",
-    "inference_time_sec": 0.25,
+    "inference_time_sec": 18.25,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1009",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "Git user",
+      "what": "Merge conflict in app/Models/User.php during a rebase operation",
+      "where": "In the app/Models/User.php file",
+      "when": "During the execution of the git rebase command",
+      "why": "Two contributors edited the same region of the file in parallel, causing Git to detect a merge conflict",
+      "how": "The conflicting changes need to be manually resolved by editing the file and choosing the correct combination of both changes"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-GIT-001 Standard Merge Conflict: ## Diagnosis\nThis is routine, expected Git behavior when two contributors edit the same region of a file in parallel — it does not indicate a mistake by either party, only that manual reconciliation of the two changes is required.\n\n## Remediation\n```bash\n# 1. See",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1010",
-    "inference_time_sec": 0.29,
+    "inference_time_sec": 7.95,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1010",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "Git merge operation",
+      "what": "Merge conflict in composer.lock",
+      "where": "composer.lock file",
+      "when": "<timestamp of the merge attempt>",
+      "why": "Both johan.p and rangga.a edited the same route group block within the last hour.",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-GIT-004 Lockfile Conflict (composer.lock / package-lock.json): ## Context\nError Signature: `git pull` or `git merge` reports a conflict specifically inside `composer.lock` or `package-lock.json`, with conflict markers surrounding a version-number mismatch for the same package.\nThis occurs when t",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1011",
-    "inference_time_sec": 0.43,
+    "inference_time_sec": 10.91,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1011",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "eventin-nginx-1",
+      "what": "Docker container exited with code 137 and OOMKilled status",
+      "where": "/var/lib/docker/containers/eventin-nginx-1",
+      "when": "[2026-07-10 12:38:00]",
+      "why": "Out of memory, max_children reached, and allowed memory size exhausted while processing a large CSV export job",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-001 Container OOMKilled (Exit Code 137): DOC-001: Container OOMKilled (Exit Code 137)\nSOP_ID: SOP-DOC-001\nCategory: Docker\nConfidence_Tier: A\nTags: docker, memory, oom\n\n## Context\nError Signature: `docker inspect` reports `ExitCode 137` and `OOMKilled: true`; kernel log shows \"Out of memory:",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1012",
-    "inference_time_sec": 0.32,
+    "inference_time_sec": 8.2,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1012",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "git user",
+      "what": "Git merge conflict in composer.lock",
+      "where": "composer.lock file",
+      "when": "Current timestamp",
+      "why": "Different line endings (CRLF vs. LF) between Windows and WSL environments",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-GIT-004 Lockfile Conflict (composer.lock / package-lock.json): ## Context\nError Signature: `git pull` or `git merge` reports a conflict specifically inside `composer.lock` or `package-lock.json`, with conflict markers surrounding a version-number mismatch for the same package.\nThis occurs when t",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1013",
-    "inference_time_sec": 0.23,
+    "inference_time_sec": 19.87,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1013",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "The billing service application",
+      "what": "Failed health check due to port already in use",
+      "where": "On the host machine where two replicas of the app are running",
+      "when": "2 minutes ago, after a scale change with docker compose",
+      "why": "Two replicas of the billing service-app-1 were trying to bind to the same port (80) on localhost",
+      "how": "By scaling down to one replica and then back up, ensuring only one instance binds to the specified port"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-002 Healthcheck Failing — Port Already in Use: # 3. Bring the service back up at the intended scale\ndocker compose up -d --scale app=1 --no-recreate\n```\nVerification: `docker ps` shows the service as `healthy`, and `curl localhost:8080` returns a normal HTTP response.\n\n---",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1014",
-    "inference_time_sec": 0.43,
+    "inference_time_sec": 9.3,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1014",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "Git merge process",
+      "what": "Merge conflict in package-lock.json",
+      "where": "package-lock.json file",
+      "when": "Not specified in the ticket",
+      "why": "Conflicting updates from two teammates",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-GIT-004 Lockfile Conflict (composer.lock / package-lock.json): ## Context\nError Signature: `git pull` or `git merge` reports a conflict specifically inside `composer.lock` or `package-lock.json`, with conflict markers surrounding a version-number mismatch for the same package.\nThis occurs when t",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1015",
-    "inference_time_sec": 0.31,
+    "inference_time_sec": 20.65,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1015",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "The developer(s) involved in the ticket.",
+      "what": "A merge conflict occurred while trying to pull changes from the 'hotfix/auth-guard' branch.",
+      "where": "In the file 'app/Models/User.php'.",
+      "when": "When executing the command '$ git pull origin hotfix/auth-guard'.",
+      "why": "Two teammates independently modified the same region of the 'app/Models/User.php' file, leading to a conflict during the merge process.",
+      "how": "The conflict was automatically detected by Git. The developer(s) need to manually resolve the conflict by editing the file and choosing between the changes made by each teammate."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-GIT-001 Standard Merge Conflict: ## Diagnosis\nThis is routine, expected Git behavior when two contributors edit the same region of a file in parallel — it does not indicate a mistake by either party, only that manual reconciliation of the two changes is required.\n\n## Remediation\n```bash\n# 1. See",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1016",
-    "inference_time_sec": 0.77,
+    "inference_time_sec": 10.48,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1016",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "Composer and Docker build process",
+      "what": "Error during Composer install: missing Symfony Process class",
+      "where": "/app/vendor/composer/installed.php",
+      "when": "Step 9/14 of the docker build",
+      "why": "Composer version mismatch between lock file and image (lock file was generated with composer 2.7, image has composer 2.2)",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-005 Image Build Failure — Composer Version Mismatch: ## Context\nError Signature: `docker build` fails during `composer install --no-dev --optimize-autoloader` with a class-not-found error referencing `vendor/composer/installed.php`, blocking the CI pipeline for a feature branch.\nThis occurs ",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1017",
-    "inference_time_sec": 0.31,
+    "inference_time_sec": 11.0,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1017",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "staging database",
+      "what": "SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded; try restarting transaction during migration",
+      "where": "/path/to/migration/script.php",
+      "when": "2026-07-10 08:31:00",
+      "why": "A long-running report query is holding a lock on the `users` table, preventing the migration from acquiring a lock to add the `synced_at` column",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-003 Migration Lock Wait Timeout (Error 1205): ## Context\nError Signature: SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded, raised during an `ALTER TABLE` statement run via `php artisan migrate --force`, with the migration appearing to hang for several minutes before failing.\nT",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1018",
-    "inference_time_sec": 0.47,
+    "inference_time_sec": 20.47,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1018",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "johan.p and fajar.m",
+      "what": "merge conflict",
+      "where": "database/migrations/2026_07_01_add_status_column.php",
+      "when": "the last hour",
+      "why": "both contributors edited the same region of the file in parallel, as per SOP-GIT-001 Standard Merge Conflict diagnosis.",
+      "how": "manually resolve the conflict by opening the conflicting file and keeping the correct combination of both changes."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-GIT-001 Standard Merge Conflict: ## Diagnosis\nThis is routine, expected Git behavior when two contributors edit the same region of a file in parallel — it does not indicate a mistake by either party, only that manual reconciliation of the two changes is required.\n\n## Remediation\n```bash\n# 1. See",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1019",
-    "inference_time_sec": 0.25,
+    "inference_time_sec": 10.96,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1019",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "eventin-worker-1",
+      "what": "Failed to write to laravel.log due to permission denied error",
+      "where": "/var/www/html/storage/logs/laravel.log",
+      "when": "2026-07-10 14:06:00",
+      "why": "Container is running as uid=1000(www-data), but the file is owned by uid=0(root)",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-003 Volume Mount Permission Denied: ## Context\nError Signature: \"failed to write to /var/www/html/storage/logs/laravel.log: Permission denied\"; `ls -la` inside the container shows the log directory owned by `root` while the container process runs as a non-root user.\nThis occurs when a bind-m",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1020",
-    "inference_time_sec": 0.63,
+    "inference_time_sec": 8.18,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1020",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "Rangga A and Johan P",
+      "what": "Merge conflict in package-lock.json",
+      "where": "package-lock.json",
+      "when": "Last hour",
+      "why": "Both users edited the same route group block simultaneously",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-GIT-004 Lockfile Conflict (composer.lock / package-lock.json): ## Context\nError Signature: `git pull` or `git merge` reports a conflict specifically inside `composer.lock` or `package-lock.json`, with conflict markers surrounding a version-number mismatch for the same package.\nThis occurs when t",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1021",
-    "inference_time_sec": 0.54,
+    "inference_time_sec": 9.18,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1021",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "git user",
+      "what": "Git merge conflict in composer.lock",
+      "where": "composer.lock file",
+      "when": "<Timestamp of the ticket>",
+      "why": "Line endings difference between Windows and Linux systems",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-GIT-004 Lockfile Conflict (composer.lock / package-lock.json): ## Context\nError Signature: `git pull` or `git merge` reports a conflict specifically inside `composer.lock` or `package-lock.json`, with conflict markers surrounding a version-number mismatch for the same package.\nThis occurs when t",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1022",
-    "inference_time_sec": 0.88,
+    "inference_time_sec": 20.07,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1022",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "Johan P.",
+      "what": "Pushing a branch to remote repository failed due to a merge conflict.",
+      "where": "git.internal:hite-core.git",
+      "when": "Not specified in the ticket, likely when Johan P. tried to push after checking out a specific commit.",
+      "why": "Git detected that the branch tip was behind its remote counterpart, indicating a potential parallel edit by another contributor.",
+      "how": "Manual resolution of merge conflicts is required, as per SOP-GIT-001 Standard Merge Conflict."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-GIT-001 Standard Merge Conflict: ## Diagnosis\nThis is routine, expected Git behavior when two contributors edit the same region of a file in parallel — it does not indicate a mistake by either party, only that manual reconciliation of the two changes is required.\n\n## Remediation\n```bash\n# 1. See",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1023",
-    "inference_time_sec": 0.32,
+    "inference_time_sec": 10.46,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1023",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "replica db-staging-02.internal",
+      "what": "stale data read",
+      "where": "event_registrations table",
+      "when": "2026-07-10 11:16:00",
+      "why": "replica lag reported by Seconds_Behind_Master: 47",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-005 Read Replica Lag Causing Stale Reads: ## Context\nError Signature: Read query against a replica returns stale or missing data immediately after a write, with `Seconds_Behind_Master` reported well above zero (commonly 30+ seconds) at the time of the failed read.\nThis occurs when an applicat",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1024",
-    "inference_time_sec": 0.61,
+    "inference_time_sec": 11.56,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1024",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "hite-core-scheduler-1 and nginx",
+      "what": "Health check failed due to connection refusal, and nginx unable to bind to port 80",
+      "where": "/var/log/nginx/error.log",
+      "when": "2026-07-10 15:11:00",
+      "why": "Two replicas of hite-core-scheduler-1 are racing for the same host port, leading to a conflict and nginx unable to bind",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-002 Healthcheck Failing — Port Already in Use: ## Context\nError Signature: `docker ps` shows the container as `unhealthy`; nginx error log reports `bind() to 0.0.0.0:80 failed (98: Address already in use)`.\nThis occurs when two replicas of the same service attempt to bind the same host port ",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1025",
-    "inference_time_sec": 0.25,
+    "inference_time_sec": 11.04,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1025",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "redis-inventory-api service",
+      "what": "Connection refused error",
+      "where": "/var/www/inventory-api/vendor/predis/predis/src/Connection/AbstractConnection.php",
+      "when": "2026-07-10 09:41:00",
+      "why": "Repeated client disconnects every ~10s, suggesting network or configuration issues",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-004 Redis/Horizon Queue Connection Refused: ## Context\nError Signature: Predis\\Connection\\ConnectionException: Connection refused [tcp://redis-<project>.internal:6379], reported by a Horizon worker after repeated supervisor restarts, with `docker logs` showing the Redis container is running b",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1026",
-    "inference_time_sec": 0.25,
+    "inference_time_sec": 30.36,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1026",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "The system's `presensi-akademik-worker` service",
+      "what": "is experiencing repeated attempts to connect to the MySQL database (`db`) due to a healthcheck condition",
+      "where": "in the Docker Compose environment",
+      "when": "between 12:27:00 and 12:27:00 on 2026-07-10",
+      "why": "The `depends_on` directive in the Docker Compose file allows the `worker` service to start before the `db` service is fully healthy, causing an initial failure due to MySQL's InnoDB crash recovery time",
+      "how": "by adjusting the healthcheck parameters in the `docker-compose.yml` file to include a longer `start_period` of 30 seconds and specifying a more robust healthcheck command (`mysqladmin ping -h localhost`) that reflects true readiness"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-004 Dependency Crash Loop (depends_on Race): # 2. Tighten the healthcheck to reflect true readiness, with a longer\n#    start_period to cover crash-recovery time (docker-compose.yml):\n#    healthcheck:\n#      test: [\"CMD\", \"mysqladmin\", \"ping\", \"-h\", \"localhost\"]\n#      interval: 5s\n#      r",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1027",
-    "inference_time_sec": 0.23,
+    "inference_time_sec": 9.53,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1027",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "replica db-prod-01.internal",
+      "what": "stale data returned from read query",
+      "where": "/orders table on replica db-prod-01.internal",
+      "when": "2026-07-10 09:00:00",
+      "why": "replica lag causing seconds_behind_master to be 47",
+      "how": "Pending SOP search for 'stale data in replica database'"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-005 Read Replica Lag Causing Stale Reads: ## Context\nError Signature: Read query against a replica returns stale or missing data immediately after a write, with `Seconds_Behind_Master` reported well above zero (commonly 30+ seconds) at the time of the failed read.\nThis occurs when an applicat",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1028",
-    "inference_time_sec": 0.41,
+    "inference_time_sec": 25.89,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1028",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "billing-service-worker-1 container",
+      "what": "failed to write to laravel.log",
+      "where": "/var/www/html/storage/logs/laravel.log",
+      "when": "2026-07-10 12:53:00",
+      "why": "The container runs as uid=1000(www-data), while the host bind-mount is owned by uid=0(root) after volume was recreated on a new host.",
+      "how": "Volume Mount Permission Denied - Refer to DOC-003 in SOP-DOC-003. Change ownership of the volume mount to match the container's user (uid=1000) or adjust permissions to allow write access by uid=1000."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-003 Volume Mount Permission Denied: DOC-003: Volume Mount Permission Denied\nSOP_ID: SOP-DOC-003\nCategory: Docker\nConfidence_Tier: A\nTags: docker, filesystem, permissions",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1029",
-    "inference_time_sec": 0.17,
+    "inference_time_sec": 10.59,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1029",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "production system",
+      "what": "SQL connection timeout error",
+      "where": "/var/www/hite-core/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:70",
+      "when": "[2026-07-10 10:14:00]",
+      "why": "Connection pool exhausted or database server unresponsive",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-001 MySQL Connection Timeout (SQLSTATE 2002): ## Context\nError Signature: SQLSTATE[HY000] [2002] Connection timed out, thrown from Illuminate\\Database\\Connectors\\Connector during a query, usually accompanied by a connection-pool status line showing active connections near the configured maxim",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1030",
-    "inference_time_sec": 0.31,
+    "inference_time_sec": 31.09,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1030",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "The application's database connection pool",
+      "what": "An attempt to connect to the MySQL database",
+      "where": "On 'db-prod-01.internal' at port 3306 in a production environment",
+      "when": "On July 10, 2026, at 8:15 AM UTC",
+      "why": "Too many active connections to the MySQL database as indicated by the connection pool status which shows that only one out of 100 connections is available and all others are either in use or waiting to be used.",
+      "how": "The issue was caused by a high number of concurrent database requests, exceeding the maximum limit set for active connections in the connection pool. This was handled according to SOP-DB-002, which suggests addressing this problem by optimizing queries, increasing the connection pool size, or identifying and resolving bottlenecks."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-002 MySQL Too Many Connections (SQLSTATE 1040): DB-002: MySQL Too Many Connections (SQLSTATE 1040)\nSOP_ID: SOP-DB-002\nCategory: Database\nConfidence_Tier: A\nTags: laravel, mysql, database, connection-pool",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1031",
-    "inference_time_sec": 0.27,
+    "inference_time_sec": 30.63,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1031",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "Developer running PHP artisan queue:work locally against a shared staging database.",
+      "what": "An attempt to insert data into the `orders` table in MySQL failed due to exceeding the maximum number of allowed connections.",
+      "where": "On the shared staging database db-prod-03.internal.",
+      "when": "At 2026-07-10 08:21:00 while attempting to run a queue task.",
+      "why": "The database has reached its maximum number of connections, which is set at 150, and there are currently 151 active connections. This indicates that all available connections have been exhausted, likely due to a high volume of concurrent queries or improperly managed database sessions.",
+      "how": "The issue can be resolved by either increasing the `max_connections` setting on the MySQL server if possible, optimizing queries to reduce connection usage, or managing and closing database connections more efficiently in the application code."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-002 MySQL Too Many Connections (SQLSTATE 1040): DB-002: MySQL Too Many Connections (SQLSTATE 1040)\nSOP_ID: SOP-DB-002\nCategory: Database\nConfidence_Tier: A\nTags: laravel, mysql, database, connection-pool",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1032",
-    "inference_time_sec": 0.26,
+    "inference_time_sec": 9.15,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1032",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "Git user",
+      "what": "Error occurred during submodule update",
+      "where": "packages/inventory-api-shared-ui/src/components/Table.vue",
+      "when": "<current timestamp>",
+      "why": "Local changes to the file would be overwritten by checkout",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-GIT-005 Submodule Checkout Conflict: ## Context\nError Signature: `git submodule update --init --recursive` fails with \"Your local changes to the following files would be overwritten by checkout,\" referencing files inside a submodule path.\nThis occurs when uncommitted local changes exist inside a",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1033",
-    "inference_time_sec": 0.25,
+    "inference_time_sec": 11.37,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1033",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "spk-saw-umkm-app-1",
+      "what": "Container exited with code 137 and was killed due to out of memory",
+      "where": "/var/log/syslog",
+      "when": "2026-07-10 13:23:00",
+      "why": "Out of memory; php-fpm reached pm.max_children limit, and allowed memory size was exhausted during large CSV export",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-001 Container OOMKilled (Exit Code 137): DOC-001: Container OOMKilled (Exit Code 137)\nSOP_ID: SOP-DOC-001\nCategory: Docker\nConfidence_Tier: A\nTags: docker, memory, oom\n\n## Context\nError Signature: `docker inspect` reports `ExitCode 137` and `OOMKilled: true`; kernel log shows \"Out of memory:",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1034",
-    "inference_time_sec": 0.32,
+    "inference_time_sec": 11.41,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1034",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "SQL query execution",
+      "what": "Connection timed out error during SQL query execution",
+      "where": "/var/www/presensi-akademik/app/Http/Controllers/Attendance_logsController.php",
+      "when": "2026-07-10 09:14:00",
+      "why": "The database connection timed out, likely due to high load or network issues",
+      "how": "Pending SOP search for troubleshooting connection timeout issues"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-001 MySQL Connection Timeout (SQLSTATE 2002): ## Context\nError Signature: SQLSTATE[HY000] [2002] Connection timed out, thrown from Illuminate\\Database\\Connectors\\Connector during a query, usually accompanied by a connection-pool status line showing active connections near the configured maxim",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1035",
-    "inference_time_sec": 0.4,
+    "inference_time_sec": 10.85,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1035",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "horizon worker for queue=default",
+      "what": "Connection refused error with Redis server",
+      "where": "/var/www/spk-saw-umkm/vendor/predis/predis/src/Connection/AbstractConnection.php",
+      "when": "[2026-07-10 08:47:00]",
+      "why": "Repeated client disconnects every ~10s on Redis server",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-004 Redis/Horizon Queue Connection Refused: ## Context\nError Signature: Predis\\Connection\\ConnectionException: Connection refused [tcp://redis-<project>.internal:6379], reported by a Horizon worker after repeated supervisor restarts, with `docker logs` showing the Redis container is running b",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1036",
-    "inference_time_sec": 0.3,
+    "inference_time_sec": 20.69,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1036",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "Rangga.A",
+      "what": "Pushing changes to a remote branch.",
+      "where": "git.internal:billing-service.git",
+      "when": "Not specified in the ticket, but during a workflow involving hotfix testing.",
+      "why": "A non-fast-forward push was rejected because the local repository's HEAD was detached from any branch.",
+      "how": "The issue arises due to being in a 'detached HEAD' state. The recommended action is to create a new branch before making further changes."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-GIT-003 Detached HEAD / Non-Fast-Forward Push Rejection: GIT-003: Detached HEAD / Non-Fast-Forward Push Rejection\nSOP_ID: SOP-GIT-003\nCategory: Git\nConfidence_Tier: B\nTags: git, version-control, branching",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1037",
-    "inference_time_sec": 0.39,
+    "inference_time_sec": 28.85,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1037",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "The system that attempted to build the Docker image.",
+      "what": "A Composer install command in a Dockerfile.",
+      "where": "In the Step 9/14 of the Docker build process.",
+      "when": "During the hotfix/auth-guard branch build.",
+      "why": "There is a mismatch between the Composer version used to generate the lock file and the version present in the base image's package cache, leading to missing dependencies like Symfony's Process component.",
+      "how": "The issue can be remediated by ensuring the Composer binary in the Docker base image is up-to-date. This can be done by refreshing the package cache or updating Composer within the Dockerfile."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-005 Image Build Failure — Composer Version Mismatch: ## Diagnosis\nThis is a tooling version drift issue rather than a dependency conflict — the packages themselves are compatible, but the Composer binary in the image is stale, often because the base image's package cache has not been refresh",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1038",
-    "inference_time_sec": 0.28,
+    "inference_time_sec": 11.48,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1038",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "spk-saw-umkm-app-1 container",
+      "what": "Out of memory error, service crash, and PHP-FPM process termination due to max_children limit reached",
+      "where": "/var/log/syslog or Docker logs",
+      "when": "2026-07-10 14:55:00",
+      "why": "Insufficient memory allocated for the container and PHP-FPM, leading to a crash loop with a high number of restarts in the past hour",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-001 Container OOMKilled (Exit Code 137): DOC-001: Container OOMKilled (Exit Code 137)\nSOP_ID: SOP-DOC-001\nCategory: Docker\nConfidence_Tier: A\nTags: docker, memory, oom\n\n## Context\nError Signature: `docker inspect` reports `ExitCode 137` and `OOMKilled: true`; kernel log shows \"Out of memory:",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1039",
-    "inference_time_sec": 1.08,
+    "inference_time_sec": 22.31,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1039",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "The reporter and two teammates who ran `composer update` / `npm install` independently before pushing.",
+      "what": "Merge conflict in the file resources/views/livewire/dashboard.blade.php due to parallel edits by multiple contributors.",
+      "where": "In the resources/views/livewire/dashboard.blade.php file.",
+      "when": "During the execution of git pull origin release/1.4.0.",
+      "why": "Git does not merge changes automatically when two contributors edit the same region of a file in parallel. This is expected Git behavior and not an indication of a mistake by either party.",
+      "how": "Manual resolution of the conflict by opening each conflicting file, removing the <<<<<<< / ======= / >>>>>>> markers, and keeping the correct combination of both changes."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-GIT-001 Standard Merge Conflict: ## Diagnosis\nThis is routine, expected Git behavior when two contributors edit the same region of a file in parallel — it does not indicate a mistake by either party, only that manual reconciliation of the two changes is required.\n\n## Remediation\n```bash\n# 1. See",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1040",
-    "inference_time_sec": 0.44,
+    "inference_time_sec": 8.8,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1040",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "Git user",
+      "what": "Merge conflict in package-lock.json during rebase operation",
+      "where": "package-lock.json",
+      "when": "<Current timestamp>",
+      "why": "Content conflict between current branch and origin/main",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-GIT-004 Lockfile Conflict (composer.lock / package-lock.json): ## Context\nError Signature: `git pull` or `git merge` reports a conflict specifically inside `composer.lock` or `package-lock.json`, with conflict markers surrounding a version-number mismatch for the same package.\nThis occurs when t",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1041",
-    "inference_time_sec": 0.56,
+    "inference_time_sec": 9.87,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1041",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "billing-service",
+      "what": "Composer install failed due to class not found error and composer version mismatch.",
+      "where": "/app/vendor/composer/installed.php",
+      "when": "<timestamp>",
+      "why": "Missing Symfony Component Process or Composer version mismatch between lock file and image.",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-005 Image Build Failure — Composer Version Mismatch: ## Context\nError Signature: `docker build` fails during `composer install --no-dev --optimize-autoloader` with a class-not-found error referencing `vendor/composer/installed.php`, blocking the CI pipeline for a feature branch.\nThis occurs ",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1042",
-    "inference_time_sec": 0.33,
+    "inference_time_sec": 9.79,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1042",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "redis-presensi-akademik service",
+      "what": "Connection refused error",
+      "where": "/var/www/presensi-akademik/vendor/predis/predis/src/Connection/AbstractConnection.php:187",
+      "when": "2026-07-10 10:55:00",
+      "why": "Repeated client disconnects every ~10 seconds",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-004 Redis/Horizon Queue Connection Refused: ## Context\nError Signature: Predis\\Connection\\ConnectionException: Connection refused [tcp://redis-<project>.internal:6379], reported by a Horizon worker after repeated supervisor restarts, with `docker logs` showing the Redis container is running b",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1043",
-    "inference_time_sec": 0.24,
+    "inference_time_sec": 6.41,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1043",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "Git user",
+      "what": "Error while updating git submodule due to local changes",
+      "where": "packages/hite-core-shared-ui/src/components/Table.vue",
+      "when": "<Timestamp of the error>",
+      "why": "Local changes in the submodule would be overwritten by checkout",
+      "how": "Commit or stash changes before switching branches"
+    },
+    "action_taken": "none",
+    "result_preview": "No action taken.",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1044",
-    "inference_time_sec": 0.53,
+    "inference_time_sec": 22.42,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1044",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "The system",
+      "what": "Container memory limit exceeded and killed",
+      "where": "localhost:80",
+      "when": "2 minutes ago",
+      "why": "The container's memory limit was smaller than the peak memory footprint of the workload, leading to an out-of-memory error.",
+      "how": "By raising the container's memory limit in docker-compose.yml from 1024m to 2048m."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-001 Container OOMKilled (Exit Code 137): ## Diagnosis\nThe container's configured memory limit is smaller than the peak memory footprint of the workload it is running — frequently a CSV/report export that loads an entire dataset into memory rather than processing it in chunks.\n\n## Remediation",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1045",
-    "inference_time_sec": 0.19,
+    "inference_time_sec": 9.76,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1045",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "inventory-api-nginx-1",
+      "what": "Service crashed due to out of memory and PHP-FPM memory exhaustion",
+      "where": "/path/to/docker-compose.yml",
+      "when": "2026-07-10 11:41:00",
+      "why": "Out of memory and PHP-FPM pm.max_children reached",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-001 Container OOMKilled (Exit Code 137): DOC-001: Container OOMKilled (Exit Code 137)\nSOP_ID: SOP-DOC-001\nCategory: Docker\nConfidence_Tier: A\nTags: docker, memory, oom\n\n## Context\nError Signature: `docker inspect` reports `ExitCode 137` and `OOMKilled: true`; kernel log shows \"Out of memory:",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1046",
-    "inference_time_sec": 0.16,
+    "inference_time_sec": 9.21,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1046",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "replica db-prod-03.internal",
+      "what": "Read query returned stale data due to replica lag",
+      "where": "/path/to/event_registrations.sql",
+      "when": "2026-07-10 10:06:00",
+      "why": "Replica lag reported by Seconds_Behind_Master: 47",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-005 Read Replica Lag Causing Stale Reads: ## Context\nError Signature: Read query against a replica returns stale or missing data immediately after a write, with `Seconds_Behind_Master` reported well above zero (commonly 30+ seconds) at the time of the failed read.\nThis occurs when an applicat",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1047",
-    "inference_time_sec": 0.28,
+    "inference_time_sec": 22.17,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1047",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "Developer working on the project",
+      "what": "Attempting to merge changes from 'origin/main' into the current branch",
+      "where": "File: app/Models/User.php",
+      "when": "During a git rebase operation",
+      "why": "A content conflict occurred due to parallel edits by two contributors in the same region of the file. This is expected Git behavior and does not indicate a mistake.",
+      "how": "The developer needs to manually resolve the conflict, open the conflicting file, remove the <<<<<<< / ======= / >>>>>>> markers, and keep the correct combination of both changes. After resolving, they should mark the files as resolved with 'git add/rm <conflicted_files>' and then run 'git rebase --continue'."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-GIT-001 Standard Merge Conflict: ## Diagnosis\nThis is routine, expected Git behavior when two contributors edit the same region of a file in parallel — it does not indicate a mistake by either party, only that manual reconciliation of the two changes is required.\n\n## Remediation\n```bash\n# 1. See",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1048",
-    "inference_time_sec": 0.22,
+    "inference_time_sec": 28.14,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1048",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "The application running locally against the shared staging database.",
+      "what": "An error occurred due to too many connections to the MySQL database.",
+      "where": "In the /var/www/billing-service/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php file, at line 70.",
+      "when": "On July 10, 2026, at 9:19 AM local time.",
+      "why": "The number of active connections to the MySQL database exceeded its maximum limit (150). This is indicated by the `Threads_connected` value being higher than `max_connections`. The root cause is likely due to inefficient connection handling or a large number of concurrent requests.",
+      "how": "To resolve this issue, follow the steps outlined in SOP-DB-002: MySQL Too Many Connections (SQLSTATE 1040). This may include optimizing connection pooling settings, increasing the `max_connections` value if necessary, and ensuring proper connection management within the application code."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-002 MySQL Too Many Connections (SQLSTATE 1040): DB-002: MySQL Too Many Connections (SQLSTATE 1040)\nSOP_ID: SOP-DB-002\nCategory: Database\nConfidence_Tier: A\nTags: laravel, mysql, database, connection-pool",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1049",
-    "inference_time_sec": 0.15,
+    "inference_time_sec": 11.02,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1049",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "staging environment",
+      "what": "SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded; try restarting transaction",
+      "where": "/path/to/migration/script.php",
+      "when": "2026-07-10 09:24:00",
+      "why": "Long-running report query is holding a lock on `event_registrations` table",
+      "how": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-003 Migration Lock Wait Timeout (Error 1205): ## Context\nError Signature: SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded, raised during an `ALTER TABLE` statement run via `php artisan migrate --force`, with the migration appearing to hang for several minutes before failing.\nT",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1050",
-    "inference_time_sec": 0.25,
+    "inference_time_sec": 11.21,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1050",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "MySQL database",
+      "what": "Too many connections error during SQL insert operation",
+      "where": "/var/www/hite-core/vendor/laravel/framework/src/Illuminate/Database/Connectors/Connector.php:70",
+      "when": "2026-07-10 11:35:00",
+      "why": "The number of connections to the MySQL database has reached its maximum limit (max_connections=150)",
+      "how": "Pending SOP search for resolving high connection issues"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-002 MySQL Too Many Connections (SQLSTATE 1040): ## Context\nError Signature: SQLSTATE[HY000] [1040] Too many connections, typically thrown from a queue worker or artisan command, with `Threads_connected` at or above `max_connections` in the MySQL status output.\nThis happens when the number of ",
+    "grounded": false
   },
   {
     "ticket_id": "TKT-1051",
-    "inference_time_sec": 0.27,
+    "inference_time_sec": 23.61,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1051",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "ferdi (sudo user)",
+      "what": "attempted to delete a directory (/usr/share/ollama) with sudo privileges",
+      "where": "/usr/share/ollama on DEBIAN13",
+      "when": "Jul 15 13:12:36",
+      "why": "There was likely an ownership mismatch issue due to volume recreation, as per the SOP-DOC-003 Volume Mount Permission Denied document.",
+      "how": "The attempt was made using sudo, which is not recommended for non-root actions without proper justification and understanding of the implications."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-003 Volume Mount Permission Denied: ## Diagnosis\nThis is a straightforward filesystem ownership mismatch introduced by volume recreation — it is not a code or configuration regression, and does not indicate a security issue beyond the ownership itself.\n\n## Remediation\n```bash\n# 1. Inspect cu",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1052",
-    "inference_time_sec": 0.55,
+    "inference_time_sec": 20.57,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1052",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "Kubernetes system",
+      "what": "Failed to pull image from the registry",
+      "where": "Pod/api-gateway-5777bc44c-5mbks in namespace [not specified]",
+      "when": "[Not specified]",
+      "why": "Registry authentication failure using the credentials provided by Kubernetes",
+      "how": "The pod is not authorized to pull the image due to an incorrect or missing image pull secret"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-K8S-001 Image Pull Forbidden (Registry Authentication Failure): ## Diagnosis\nA 403 response, as opposed to a 404, confirms the image reference itself is correct — the registry recognizes the request but is not authorizing it, which almost always traces back to the credential Kubernetes is using ",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1053",
-    "inference_time_sec": 0.2,
+    "inference_time_sec": 25.4,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1053",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "The Kubernetes cluster",
+      "what": "A liveness probe for the pod 'prometheus-kube-state-metrics-57c8d67ff4-sgc8v' failed with a status code of 503.",
+      "where": "In the Kubernetes environment",
+      "when": "31 minutes ago",
+      "why": "The liveness probe failed because the HTTP endpoint returned a 503 status code, indicating that the service was not available or in an error state.",
+      "how": "According to SOP-K8S-002, this issue can be resolved by checking the logs of the pod and ensuring that the backend service is functioning correctly."
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-K8S-002 Liveness Probe Failing (HTTP 503): K8S-002: Liveness Probe Failing (HTTP 503)\nSOP_ID: SOP-K8S-002\nCategory: Kubernetes\nConfidence_Tier: B\nTags: kubernetes, observability, healthcheck",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1054",
-    "inference_time_sec": 0.26,
+    "inference_time_sec": 5.94,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1054",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "user ferdi",
+      "what": "session disconnected",
+      "where": "/var/log/auth.log",
+      "when": "Jul 14 17:18:48",
+      "why": "unknown (normal logout by user)",
+      "how": "Pending"
+    },
+    "action_taken": "none",
+    "result_preview": "No action taken.",
+    "grounded": true
   },
   {
     "ticket_id": "TKT-1055",
-    "inference_time_sec": 0.33,
+    "inference_time_sec": 5.74,
     "status_code": 200,
     "5w1h_output": {
-      "ticket_metadata": {
-        "ticket_id": "TKT-1055",
-        "classification": "placeholder_classification"
-      },
-      "remediation_payload": {
-        "proposed_fix": "Rust backend is not yet connected to Qdrant.",
-        "requires_type_check": false
-      }
-    }
+      "who": "argocd",
+      "what": "Sync operation completed successfully",
+      "where": "application/qti-api-gateway",
+      "when": "8m13s ago",
+      "why": "No error or failure mentioned",
+      "how": "Operation succeeded as expected"
+    },
+    "action_taken": "none",
+    "result_preview": "No action taken.",
+    "grounded": true
   }
 ]

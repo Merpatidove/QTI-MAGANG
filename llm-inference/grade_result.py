@@ -1,16 +1,18 @@
 import json
 from pathlib import Path
 
+# A 'how' that still holds the prompt's placeholder example is NOT grounded in a SOP.
+# Keep this string in sync with the `grounded` flag in test_run.py.
+PLACEHOLDER_HOW = "pending sop search"
+REQUIRED_KEYS = {"Who", "What", "When", "Where", "Why", "How"}
+
+
 def evaluate_results():
-    # Define paths based on your current directory structure
     results_path = Path("evaluation_results.json")
-    
-    # Safety check (matches the error you saw earlier!)
     if not results_path.exists():
         print("Error: evaluation_results.json not found! Run test_run.py first.")
         exit(1)
 
-    # Load the LLM inference results
     with open(results_path, 'r', encoding='utf-8') as f:
         try:
             results = json.load(f)
@@ -22,45 +24,41 @@ def evaluate_results():
         print("evaluation_results.json is empty. No tests to grade.")
         return
 
-    total_tests = len(results)
-    valid_json_count = 0
-    complete_5w1h_count = 0
-
-    # The exact 5W1H schema keys the agent is expected to extract
-    required_keys = {"Who", "What", "When", "Where", "Why", "How"}
+    total = len(results)
+    valid_json = 0
+    complete_5w1h = 0
+    grounded = 0
 
     for item in results:
-        # Assuming your test_run.py saves the parsed dictionary under 'output' or 'response'
-        output = item.get("output", {})
-        
-        # 1. Evaluate JSON Decode Stability
-        if isinstance(output, dict) and not item.get("error"):
-            valid_json_count += 1
-            
-            # 2. Evaluate Schema Completeness (Did it extract all 6 elements?)
-            # We convert the keys to uppercase/lowercase standard to ensure strict matching
-            extracted_keys = {str(k).capitalize() for k in output.keys()}
-            
-            if required_keys.issubset(extracted_keys):
-                complete_5w1h_count += 1
+        output = item.get("5w1h_output", {})          # Fix A: the real key
+        if not (isinstance(output, dict) and not item.get("error")):
+            continue
+        valid_json += 1
 
-    # Calculate percentages
-    json_success_rate = (valid_json_count / total_tests) * 100 if total_tests > 0 else 0
-    schema_success_rate = (complete_5w1h_count / total_tests) * 100 if total_tests > 0 else 0
+        # Schema completeness: all six keys present (capitalize matches lowercase emit)
+        extracted = {str(k).capitalize() for k in output.keys()}
+        if REQUIRED_KEYS.issubset(extracted):
+            complete_5w1h += 1
 
-    # Print out the Baseline Evaluation Metrics
+        # Grounding: 'how' holds real SOP steps, not the placeholder / not empty
+        how = output.get("how") or output.get("How") or ""
+        if isinstance(how, str) and how.strip() and PLACEHOLDER_HOW not in how.lower():
+            grounded += 1
+
+    def pct(n): return (n / total) * 100 if total else 0
+
     print("==========================================")
     print("   📊 5W1H Baseline Evaluation Results    ")
     print("==========================================")
-    print(f"Total Test Cases Run:   {total_tests}")
-    print(f"Valid JSON Responses:   {valid_json_count}/{total_tests} ({json_success_rate:.1f}%)")
-    print(f"Complete 5W1H Schema:   {complete_5w1h_count}/{total_tests} ({schema_success_rate:.1f}%)")
+    print(f"Total Test Cases Run:      {total}")
+    print(f"Valid JSON Responses:      {valid_json}/{total} ({pct(valid_json):.1f}%)")
+    print(f"Complete 5W1H Schema:      {complete_5w1h}/{total} ({pct(complete_5w1h):.1f}%)")
+    print(f"Grounded (how != pending): {grounded}/{total} ({pct(grounded):.1f}%)")
     print("==========================================")
+    print("Schema  = does the 6-key structure exist?")
+    print("Grounded= is 'how' backed by a real retrieved SOP?")
+    print("Tier A = schema-complete AND grounded | Tier B = complete but ungrounded")
 
-    # Optional: Grade against golden_datasets.json if you want to check accuracy of the answers later
-    # golden_path = Path("../golden_datasets.json")
-    # if golden_path.exists():
-    #    ... load golden data and compare values ...
 
 if __name__ == "__main__":
     evaluate_results()

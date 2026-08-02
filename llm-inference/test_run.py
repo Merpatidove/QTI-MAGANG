@@ -8,7 +8,11 @@ base_dir = Path(__file__).parent.parent
 dataset_path = base_dir / "data-pipeline" / "golden_datasets.json"
 results_path = Path(__file__).parent / "evaluation_results.json"
 
-with open(dataset_path, "r") as f:
+# The agent (agent.py) runs as a FastAPI service:  uvicorn agent:app --port 8000
+# The real pipeline is test_run -> agent -> Ollama (NOT the gateway /v1/query).
+AGENT_URL = os.environ.get("AGENT_URL", "http://127.0.0.1:8000")
+
+with open(dataset_path, "r", encoding="utf-8") as f:
     data = json.load(f)
 
 # If the JSON is a dictionary containing a list of tickets, extract the list.
@@ -21,39 +25,50 @@ evaluation_data = []
 
 for index, ticket in enumerate(tickets):
     start_time = time.time()
-    
+
     # Handle both dictionary objects and raw string inputs gracefully
     raw_payload = ticket if isinstance(ticket, dict) else {"ticket_content": ticket}
     ticket_id = raw_payload.get("ticket_id", f"TICKET_{index+1}")
-    
-    # ✅ FIX 1: Map the dataset fields to the Rust backend's strict QueryRequest schema
-    rust_payload = {
+
+    # The agent's Ticket model accepts ticket_id + raw_text (project_tags is ignored).
+    payload = {
         "ticket_id": ticket_id,
         "raw_text": raw_payload.get("ticket_content", raw_payload.get("raw_text", "Unknown content")),
         "project_tags": raw_payload.get("project_tags", [])
     }
-    
-    # ✅ FIX 2: Point to the API Gateway NodePort (Tailscale worker-2) /v1/query.
-    # Override with QTI_API_URL env var if needed (e.g. a local SSH tunnel).
-    api_url = os.environ.get("QTI_API_URL", "http://100.106.122.68:30082/v1/query")
-    response = requests.post(
-        api_url,
-        json=rust_payload
-    )
-    
+
+    status_code = 0
+    w5h = {}
+    error = None
+    try:
+        response = requests.post(f"{AGENT_URL}/process-ticket", json=payload, timeout=360)
+        status_code = response.status_code
+        if status_code == 200:
+            agent_resp = response.json()
+            # Extract the FLAT six-key 5W1H dict the grader expects.
+            w5h = agent_resp.get("5w1h_output", agent_resp) if isinstance(agent_resp, dict) else {}
+        else:
+            error = f"HTTP {status_code}: {response.text[:200]}"
+    except Exception as e:
+        error = f"request error: {e}"
+
     process_time = round(time.time() - start_time, 2)
-    
+
     result_entry = {
         "ticket_id": ticket_id,
         "inference_time_sec": process_time,
-        "status_code": response.status_code,
-        "5w1h_output": response.json() if response.status_code == 200 else response.text
+        "status_code": status_code,
+        "5w1h_output": w5h,
     }
-    
-    print(f"Processed {ticket_id} in {process_time}s (Status: {response.status_code})")
+    if error:
+        # Top-level error -> grade_result.py skips this ticket's valid-JSON count.
+        result_entry["error"] = error
+
     evaluation_data.append(result_entry)
+    tag = "OK" if error is None else f"ERR({error})"
+    print(f"[{index+1}/{len(tickets)}] {ticket_id} in {process_time}s {tag}")
 
-with open(results_path, "w") as f:
-    json.dump(evaluation_data, f, indent=2)
+with open(results_path, "w", encoding="utf-8") as f:
+    json.dump(evaluation_data, f, indent=2, ensure_ascii=False)
 
-print("Batch processing complete. Results saved to evaluation_results.json")
+print(f"\nBatch processing complete. {len(evaluation_data)} tickets -> {results_path}")
