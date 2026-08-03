@@ -126,7 +126,12 @@ def process_ticket(ticket: Ticket):
             tool_output = f"Error executing execute_safe_cli: {str(e)}"
 
     # Step 3: Synthesis Phase if usable tool output was retrieved
-    if tool_output and "Error" not in str(tool_output):
+    _is_err = (
+        tool_output is None
+        or (isinstance(tool_output, dict) and bool(tool_output.get("error")))
+        or str(tool_output).lstrip().startswith("Error")
+    )
+    if not _is_err:
         # Fix E: constrain the synthesis output to the exact six 5W1H keys so the
         # grounded path reliably emits who/what/where/when/why/how.
         synthesis_prompt = f"""
