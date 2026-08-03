@@ -19,11 +19,12 @@ spec:
           image: api-gateway
           ports:
             - containerPort: 8080
+          envFrom:
+            - secretRef:
+                name: api-gateway-secrets
           env:
             - name: QDRANT_URL
               value: "http://qdrant.qdrant.svc.cluster.local:6333"
-            - name: INFERENCE_URL
-              value: "http://inference-mac-mini:8080"
             - name: EMBED_CACHE_DIR
               value: "/opt/fastembed"
           resources:
