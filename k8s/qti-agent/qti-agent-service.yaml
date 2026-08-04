@@ -1,0 +1,15 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: qti-agent
+  namespace: qti
+  labels:
+    app: qti-agent
+spec:
+  type: ClusterIP # Hanya bisa diakses dari dalam kluster (oleh api-gateway & prometheus)
+  selector:
+    app: qti-agent
+  ports:
+  - port: 8000        # Port milik Service ini
+    targetPort: 8000  # Port yang dituju di dalam Container (Uvicorn)
+    name: http        # PENTING: Nama port ini wajib "http" menyesuaikan ServiceMonitor
