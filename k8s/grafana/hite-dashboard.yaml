@@ -1,0 +1,225 @@
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: grafana-dashboard-hite-llm-retrieval
+  namespace: monitoring
+  labels:
+    grafana_dashboard: "1"
+data:
+  hite-llm-retrieval.json: |-
+    {
+      "annotations": { "list": [] },
+      "editable": true,
+      "fiscalYearStartMonth": 0,
+      "graphTooltip": 1,
+      "id": null,
+      "links": [],
+      "liveNow": false,
+      "panels": [
+        {
+          "gridPos": { "h": 2, "w": 24, "x": 0, "y": 0 },
+          "id": 1,
+          "title": "SECTION 1: GATEWAY & RETRIEVAL METRICS (FARREL)",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "red", "value": null },
+                  { "color": "green", "value": 0.8 }
+                ]
+              },
+              "unit": "percentunit"
+            }
+          },
+          "gridPos": { "h": 6, "w": 8, "x": 0, "y": 2 },
+          "id": 2,
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+          "targets": [
+            {
+              "expr": "sum(rate(qti_qdrant_match_total{found=\"true\"}[5m])) / sum(rate(qti_qdrant_match_total[5m]))",
+              "legendFormat": "SOP Match Rate",
+              "refId": "A"
+            }
+          ],
+          "title": "SOP Match Rate (Qdrant)",
+          "type": "stat"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "drawStyle": "line", "lineInterpolation": "smooth" },
+              "unit": "s"
+            }
+          },
+          "gridPos": { "h": 6, "w": 8, "x": 8, "y": 2 },
+          "id": 3,
+          "targets": [
+            {
+              "expr": "rate(qti_request_duration_seconds_sum[5m]) / rate(qti_request_duration_seconds_count[5m])",
+              "legendFormat": "Avg Latency (s)",
+              "refId": "A"
+            }
+          ],
+          "title": "Gateway Avg Request Latency",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": { "custom": { "drawStyle": "bars" } }
+          },
+          "gridPos": { "h": 6, "w": 8, "x": 16, "y": 2 },
+          "id": 4,
+          "targets": [
+            {
+              "expr": "sum by (classification) (rate(qti_ticket_classification_total[5m]))",
+              "legendFormat": "{{classification}}",
+              "refId": "A"
+            }
+          ],
+          "title": "Ticket Classification Rate",
+          "type": "timeseries"
+        },
+        {
+          "gridPos": { "h": 2, "w": 24, "x": 0, "y": 8 },
+          "id": 5,
+          "title": "SECTION 2: LLM AGENT & TRIAGE HEALTH (JOHAN)",
+          "type": "row"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "drawStyle": "line", "lineInterpolation": "smooth" },
+              "unit": "s"
+            }
+          },
+          "gridPos": { "h": 7, "w": 12, "x": 0, "y": 10 },
+          "id": 6,
+          "targets": [
+            {
+              "expr": "rate(qti_llm_request_duration_seconds_sum[5m]) / rate(qti_llm_request_duration_seconds_count[5m])",
+              "legendFormat": "Phase: {{phase}}",
+              "refId": "A"
+            }
+          ],
+          "title": "LLM Request Duration by Phase",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "custom": { "drawStyle": "line" },
+              "unit": "short"
+            }
+          },
+          "gridPos": { "h": 7, "w": 12, "x": 12, "y": 10 },
+          "id": 7,
+          "targets": [
+            {
+              "expr": "sum by (type) (rate(qti_llm_tokens_total[5m]))",
+              "legendFormat": "Token Type: {{type}}",
+              "refId": "A"
+            }
+          ],
+          "title": "LLM Token Throughput (Prompt vs Completion)",
+          "type": "timeseries"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 1 }
+                ]
+              }
+            }
+          },
+          "gridPos": { "h": 6, "w": 8, "x": 0, "y": 17 },
+          "id": 8,
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+          "targets": [
+            {
+              "expr": "sum(increase(qti_agent_parse_errors_total[1h]))",
+              "legendFormat": "Parse Errors (1h)",
+              "refId": "A"
+            }
+          ],
+          "title": "Agent JSON Parse Errors (Last 1h)",
+          "type": "stat"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "red", "value": 1 }
+                ]
+              }
+            }
+          },
+          "gridPos": { "h": 6, "w": 8, "x": 8, "y": 17 },
+          "id": 9,
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+          "targets": [
+            {
+              "expr": "sum(increase(qti_agent_ollama_timeouts_total[1h]))",
+              "legendFormat": "Timeouts (1h)",
+              "refId": "A"
+            }
+          ],
+          "title": "Ollama Timeouts (Last 1h)",
+          "type": "stat"
+        },
+        {
+          "datasource": { "type": "prometheus", "uid": "prometheus" },
+          "fieldConfig": {
+            "defaults": {
+              "color": { "mode": "thresholds" },
+              "thresholds": {
+                "mode": "absolute",
+                "steps": [
+                  { "color": "green", "value": null },
+                  { "color": "orange", "value": 5 }
+                ]
+              }
+            }
+          },
+          "gridPos": { "h": 6, "w": 8, "x": 16, "y": 17 },
+          "id": 10,
+          "options": { "reduceOptions": { "calcs": ["lastNotNull"] } },
+          "targets": [
+            {
+              "expr": "sum(increase(qti_agent_empty_retrieval_total[1h]))",
+              "legendFormat": "Empty Retrievals (1h)",
+              "refId": "A"
+            }
+          ],
+          "title": "Empty Retrievals (Last 1h)",
+          "type": "stat"
+        }
+      ],
+      "refresh": "10s",
+      "schemaVersion": 38,
+      "style": "dark",
+      "tags": ["hite", "llm", "retrieval"],
+      "time": { "from": "now-1h", "to": "now" },
+      "title": "HITE — LLM Agent & Retrieval Performance Dashboard",
+      "uid": "hite-llm-retrieval-v1"
+    }
