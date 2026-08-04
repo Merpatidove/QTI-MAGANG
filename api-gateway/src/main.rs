@@ -37,7 +37,19 @@ async fn metrics() -> String {
     buffer
 }
 
-// 5. THE MAIN FUNCTION (BOOT SEQUENCE)
+// 5. REQUEST COUNTING MIDDLEWARE
+// Runs on every incoming request: adds 1 to HTTP_REQUESTS_TOTAL, then
+// passes the request through unchanged. This is what makes the previously
+// dead counter actually count.
+async fn count_requests(
+    req: axum::extract::Request,
+    next: axum::middleware::Next,
+) -> axum::response::Response {
+    HTTP_REQUESTS_TOTAL.inc();
+    next.run(req).await
+}
+
+// 6. THE MAIN FUNCTION (BOOT SEQUENCE)
 #[tokio::main]
 async fn main() {
     // 🚨 NEW: --download-only guard 🚨
@@ -72,7 +84,8 @@ async fn main() {
     let app = Router::new()
         .route("/v1/health", get(routes::health::health))
         .route("/v1/query", post(routes::query::query))
-        .route("/metrics", get(metrics));
+        .route("/metrics", get(metrics))
+        .layer(axum::middleware::from_fn(count_requests));
 
     // Bind to 0.0.0.0:8080 so the cluster can reach the server
     let addr = SocketAddr::from(([0, 0, 0, 0], 8080));
