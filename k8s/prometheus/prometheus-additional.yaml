@@ -1,0 +1,14 @@
+- job_name: 'mac-mini-external'
+  static_configs:
+    - targets: ['100.79.30.90:9100']
+      labels:
+        instance: 'mac-mini-node'
+        environment: 'production'
+
+- job_name: 'qti-agent-johan'
+  metrics_path: '/metrics'
+  static_configs:
+    - targets: ['100.126.65.74:8000']
+      labels:
+        instance: 'agent-johan'
+        environment: 'production'

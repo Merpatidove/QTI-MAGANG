@@ -1,0 +1,60 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: hite-ai-pipeline-alerts
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  groups:
+  - name: hite-ai-pipeline-rules
+    rules:
+    # 1. Alert jika Ollama/LLM mengalami Timeout berturut-turut
+    - alert: HITE_AIOllamaTimeoutHigh
+      expr: rate(qti_agent_ollama_timeouts_total[5m]) > 0.02
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "High Ollama Timeout Rate Detected"
+        description: "Ollama/LLM inference mengalami timeout (>{{ $value }} req/s). Cek beban Mac Mini/LLM host."
+
+    # 2. Alert jika LLM Latency (p95) sangat lambat (> 30 detik)
+    - alert: HITE_AILLMLatencyHigh
+      expr: histogram_quantile(0.95, sum(rate(qti_llm_request_duration_seconds_bucket[5m])) by (le, phase)) > 30
+      for: 3m
+      labels:
+        severity: warning
+      annotations:
+        summary: "LLM Latency High (Phase: {{ $labels.phase }})"
+        description: "95% request LLM pada fase {{ $labels.phase }} membutuhkan waktu lebih dari 30 detik."
+
+    # 3. Alert jika LLM sering gagal menghasilkan JSON valid
+    - alert: HITE_AIParseJSONErrorsHigh
+      expr: rate(qti_agent_parse_errors_total[5m]) > 0.05
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Tinggi Angka Kegagalan Parsing JSON LLM"
+        description: "LLM menghasilkan respon yang tidak bisa di-parse sebagai JSON (>{{ $value }} err/s). Kemungkinan instruksi prompt terabaikan."
+
+    # 4. Alert jika Vector DB / SOP Search sering kosong (Empty Retrieval)
+    - alert: HITE_AIRetrievalEmptyHigh
+      expr: rate(qti_agent_empty_retrieval_total[5m]) > 0.1
+      for: 5m
+      labels:
+        severity: warning
+      annotations:
+        summary: "RAG SOP Retrieval Sering Kosong"
+        description: "Pencarian SOP via `search_sop` tidak menghasilkan dokumen valid. Cek index Qdrant atau threshold embedding."
+
+    # 5. Alert jika Agent Service Pod Down
+    - alert: HITE_AIAgentDown
+      expr: up{job="qti-agent"} == 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "HITE Triage Agent Service Down"
+        description: "Pod `qti-agent` (agent.py) tidak dapat dijangkau oleh Prometheus."

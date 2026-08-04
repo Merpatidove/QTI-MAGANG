@@ -1,165 +1,135 @@
-import os
 import json
-import re
+import os
+import time
+from typing import List, Optional
+
 import requests
-from fastapi import FastAPI, HTTPException
-from pydantic import BaseModel, Field
-from typing import Optional, Any, Dict
-from prompts import REACT_SYSTEM_PROMPT
-from tools import search_sop, execute_safe_cli
+from fastapi import FastAPI
+from fastapi.responses import Response
+from pydantic import BaseModel
+from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
-app = FastAPI()
+import tools
 
-# Ollama is reached via the SSH tunnel:  ssh -L 11434:10.10.10.2:11434 ferdi@100.94.99.125
-# which exposes the Mac Mini's Ollama at localhost:11434.
-# Fix C: was the stale, unreachable 192.168.100.35.
-OLLAMA_BASE = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
-MAC_MINI_OLLAMA_URL = f"{OLLAMA_BASE}/api/generate"
-MODEL_NAME = os.environ.get(
-    "OLLAMA_MODEL",
-    "hf.co/stefancosma/Qwen2.5-Coder-7B-Instruct-Q4_K_M-GGUF:latest",
-)
+OLLAMA_URL   = os.environ.get("OLLAMA_URL", "http://127.0.0.1:11434")
+OLLAMA_MODEL = os.environ.get("OLLAMA_MODEL", "hf.co/stefancosma/Qwen2.5-Coder-7B-Instruct-Q4_K_M-GGUF:latest")
+OLLAMA_TIMEOUT = int(os.environ.get("OLLAMA_TIMEOUT", "120"))
+PLACEHOLDER_HOW = "Pending SOP search"
+
+app = FastAPI(title="HITE 5W1H Triage Agent")
+
+# ---------------- Prometheus metrics (Jep's action item) ----------------
+LLM_DURATION    = Histogram("qti_llm_request_duration_seconds", "Ollama latency by phase", ["phase"])
+LLM_TOKENS      = Counter("qti_llm_tokens_total", "Tokens used by type", ["type"])
+PARSE_ERRORS    = Counter("qti_agent_parse_errors_total", "JSON decode failures from the model")
+OLLAMA_TIMEOUTS = Counter("qti_agent_ollama_timeouts_total", "Ollama request timeouts")
+EMPTY_RETRIEVALS= Counter("qti_agent_empty_retrieval_total", "search_sop calls with no usable SOP")
 
 
-# Flexible Pydantic model to handle all ticket payload variations in the golden dataset
 class Ticket(BaseModel):
-    ticket_id: str
-    raw_text: Optional[str] = None
-    ticket_content: Optional[str] = None
-    description: Optional[str] = None
-    log: Optional[str] = None
-    content_text: Optional[str] = Field(default=None, alias="content")
+    ticket_id: str = ""
+    raw_text: str
+    project_tags: List[str] = []
 
-    @property
-    def content(self) -> str:
-        return (
-            self.raw_text
-            or self.ticket_content
-            or self.description
-            or self.log
-            or self.content_text
-            or ""
+
+@app.get("/metrics")
+async def metrics():
+    return Response(generate_latest(), media_type=CONTENT_TYPE_LATEST)
+
+
+@app.get("/health")
+async def health():
+    return {"status": "ok"}
+
+
+def call_ollama(prompt: str, phase: str) -> str:
+    t0 = time.perf_counter()
+    try:
+        r = requests.post(
+            f"{OLLAMA_URL}/api/generate",
+            json={"model": OLLAMA_MODEL, "prompt": prompt, "stream": False},
+            timeout=OLLAMA_TIMEOUT,
         )
+        r.raise_for_status()
+        data = r.json()
+        LLM_TOKENS.labels(type="prompt").inc(data.get("prompt_eval_count", 0) or 0)
+        LLM_TOKENS.labels(type="completion").inc(data.get("eval_count", 0) or 0)
+        return data.get("response", "")
+    except requests.exceptions.Timeout:
+        OLLAMA_TIMEOUTS.inc()
+        return ""
+    except requests.exceptions.RequestException:
+        return ""
+    finally:
+        LLM_DURATION.labels(phase=phase).observe(time.perf_counter() - t0)
 
 
-def clean_and_parse_json(raw_str: str) -> dict:
-    """Strips markdown fences and safely parses JSON, even with raw newlines/control chars."""
-    if not raw_str:
-        return {}
-
-    # 1. Strip markdown fences
-    cleaned = re.sub(r"```(?:json)?", "", raw_str)
-    cleaned = cleaned.replace("```", "").strip()
-
-    # 2. Extract outermost JSON object
-    match = re.search(r"\{.*\}", cleaned, re.DOTALL)
-    if match:
-        cleaned = match.group(0)
-
-    # 3. Parse JSON (strict=False permits unescaped newlines inside string values)
+def parse_json(text: str) -> Optional[dict]:
     try:
-        return json.loads(cleaned, strict=False)
-    except Exception as e:
-        return {
-            "error": "JSON parse error",
-            "raw_output": raw_str,
-            "exception": str(e)
-        }
+        s, e = text.find("{"), text.rfind("}")
+        if s == -1 or e == -1:
+            raise ValueError("no braces")
+        return json.loads(text[s:e + 1])
+    except Exception:
+        PARSE_ERRORS.inc()
+        return None
 
 
-def call_ollama(prompt: str) -> dict:
-    payload = {
-        "model": MODEL_NAME,
-        "prompt": prompt,
-        "stream": False,
-        "format": "json"
-    }
-    try:
-        # Fix C: timeout 45 -> 300 (first ticket cold-loads the 4.7GB model over the tunnel)
-        response = requests.post(MAC_MINI_OLLAMA_URL, json=payload, timeout=300)
-        response.raise_for_status()
-        raw_output = response.json().get("response", "")
-        return clean_and_parse_json(raw_output)
-    except Exception as e:
-        return {
-            "error": str(e),
-            "5w1h_analysis": "Error parsing model response or connecting to Ollama.",
-            "tool": None
-        }
+def analysis_prompt(t: Ticket) -> str:
+    return (
+        "You are an IT operations triage assistant. Read the ticket and reply with ONLY a JSON object "
+        'with exactly these keys: "what","where","when","who","why","how","action".\n'
+        '- Fill the 5W1H from the ticket; use "" if unknown.\n'
+        f'- "how" must be "{PLACEHOLDER_HOW}" for now.\n'
+        '- "action" is one of: "search_sop","execute_safe_cli","none". Use "search_sop" for any error/failure/remediation ticket.\n'
+        f"Ticket:\n{t.raw_text}\nReply with JSON only."
+    )
+
+
+def synthesis_prompt(t: Ticket, analysis: dict, tool_output) -> str:
+    prior = json.dumps({k: analysis.get(k, "") for k in ("what", "where", "when", "who")})
+    return (
+        "You are an IT operations triage assistant. Using the retrieved SOP, finalize the triage. "
+        'Reply with ONLY a JSON object with keys "what","where","when","who","why","how".\n'
+        f'Ground "why" and "how" in the SOP. "how" must be a concrete remediation (never "{PLACEHOLDER_HOW}").\n'
+        f"Ticket:\n{t.raw_text}\nRetrieved SOP:\n{tool_output}\nPrior analysis:\n{prior}\nReply with JSON only."
+    )
 
 
 @app.post("/process-ticket")
-def process_ticket(ticket: Ticket):
-    ticket_text = ticket.content
-    if not ticket_text:
-        raise HTTPException(
-            status_code=400,
-            detail="No ticket content provided (checked raw_text, ticket_content, description, log, content)."
-        )
+async def process_ticket(ticket: Ticket):
+    # Step 1: analysis
+    analysis = parse_json(call_ollama(analysis_prompt(ticket), phase="analysis")) or {}
+    action = str(analysis.get("action", "none")).strip()
+    if action not in ("search_sop", "execute_safe_cli", "none"):
+        action = "none"
 
-    # Step 1: 5W1H Analysis & Tool Choice
-    initial_prompt = f"{REACT_SYSTEM_PROMPT}\n\nIncoming Syslog/Ticket:\n{ticket_text}"
-    decision_data = call_ollama(initial_prompt)
+    five = {k: str(analysis.get(k, "") or "") for k in ("what", "where", "when", "who", "why")}
+    five["how"] = str(analysis.get("how", "") or PLACEHOLDER_HOW)
 
-    tool_name = decision_data.get("tool")
-
-    # Defend against "params": null from LLM output
-    params = decision_data.get("params")
-    if not isinstance(params, dict):
-        params = {}
-
+    # Step 2: tool dispatch
     tool_output = None
-
-    # Step 2: Execute Tool safely if requested
-    if tool_name == "search_sop":
-        query = params.get("query") or ticket_text
+    if action == "search_sop":
+        tool_output = tools.search_sop(ticket.raw_text)
+        if tool_output is None or not str(tool_output).strip() or str(tool_output).lstrip().startswith("Error"):
+            EMPTY_RETRIEVALS.inc()
+    elif action == "execute_safe_cli":
         try:
-            tool_output = search_sop(query)
-        except Exception as e:
-            tool_output = f"Error executing search_sop: {str(e)}"
+            tool_output = tools.execute_safe_cli(ticket.raw_text)
+        except Exception:
+            tool_output = None
 
-    elif tool_name == "execute_safe_cli":
-        command = params.get("command") or ""
-        try:
-            tool_output = execute_safe_cli(command)
-        except Exception as e:
-            tool_output = f"Error executing execute_safe_cli: {str(e)}"
-
-    # Step 3: Synthesis Phase if usable tool output was retrieved
+    # Step 3: synthesis gate (the _is_err fix that raised grounding to 96.4%)
     _is_err = (
         tool_output is None
         or (isinstance(tool_output, dict) and bool(tool_output.get("error")))
         or str(tool_output).lstrip().startswith("Error")
     )
     if not _is_err:
-        # Fix E: constrain the synthesis output to the exact six 5W1H keys so the
-        # grounded path reliably emits who/what/where/when/why/how.
-        synthesis_prompt = f"""
-Given the ticket below and the retrieved SOP content, output the final JSON response.
+        synth = parse_json(call_ollama(synthesis_prompt(ticket, analysis, tool_output), phase="synthesis"))
+        if synth:
+            for k in ("what", "where", "when", "who", "why", "how"):
+                if str(synth.get(k, "") or "").strip():
+                    five[k] = str(synth.get(k)).strip()
 
-Ticket: {ticket_text}
-Retrieved SOP Context: {tool_output}
-
-Return ONLY valid JSON with keys: 'ticket_id', '5w1h_analysis', 'action_taken', 'result'.
-'5w1h_analysis' MUST be a JSON object with EXACTLY these six keys, all non-empty strings:
-who, what, where, when, why, how. Ground 'why' and 'how' in the retrieved SOP context.
-Do NOT surround the JSON with markdown code blocks.
-"""
-        final_response = call_ollama(synthesis_prompt)
-    else:
-        final_response = decision_data
-
-    # Step 4: Fallback extraction for analysis payload
-    analysis_output = (
-        final_response.get("5w1h_analysis")
-        or final_response.get("5w1h_output")
-        or final_response.get("analysis")
-        or final_response
-    )
-
-    return {
-        "ticket_id": ticket.ticket_id,
-        "5w1h_output": analysis_output,
-        "action_taken": str(tool_name) if tool_name else "none",
-        "result": tool_output if tool_output else "No action taken."
-    }
+    return {"ticket_id": ticket.ticket_id, "action_taken": action, "result": tool_output, "5w1h_output": five}

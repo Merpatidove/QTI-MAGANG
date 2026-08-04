@@ -121,4 +121,11 @@ spec:
       annotations:
         summary: "API Gateway (Rust) tidak terjangkau"
         description: "api-gateway down, seluruh alur ticket triage HITE akan terhenti"
-
+    - alert: HITE_MacMiniDown
+      expr: up{job="mac-mini-external"} == 0
+      for: 2m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Mac Mini (AI Inference Server) tidak terjangkau"
+        description: "Node exporter Mac Mini down via Tailscale, kemungkinan Ollama/LLM juga terganggu"

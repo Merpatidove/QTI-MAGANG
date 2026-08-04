@@ -1,0 +1,40 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: qti-agent
+  namespace: qti
+  labels:
+    app: qti-agent
+spec:
+  replicas: 1 # Bisa dinaikkan jika butuh load balancing
+  selector:
+    matchLabels:
+      app: qti-agent
+  template:
+    metadata:
+      labels:
+        app: qti-agent
+    spec:
+      containers:
+      - name: qti-agent
+        # GANTI INI: Sesuaikan dengan nama Docker image hasil build kamu
+        image: 10.20.20.202:32000/qti-agent:latest 
+        imagePullPolicy: Always
+        ports:
+        - containerPort: 8000
+          name: http # PENTING: Harus bernama 'http' agar ditarik oleh ServiceMonitor
+        env:
+        # GANTI INI: Gunakan IP Tailscale / DNS Service Mac Mini kamu
+        - name: OLLAMA_URL
+          value: "http://100.79.30.90:11434" 
+        - name: OLLAMA_MODEL
+          value: "hf.co/stefancosma/Qwen2.5-Coder-7B-Instruct-Q4_K_M-GGUF:latest"
+        - name: OLLAMA_TIMEOUT
+          value: "120"
+        resources:
+          requests:
+            cpu: 200m
+            memory: 256Mi
+          limits:
+            cpu: 500m
+            memory: 512Mi

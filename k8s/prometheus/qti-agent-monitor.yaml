@@ -1,0 +1,19 @@
+apiVersion: monitoring.coreos.com/v1
+kind: ServiceMonitor
+metadata:
+  name: hite-qti-agent-monitor
+  namespace: monitoring
+  labels:
+    # Label ini menyesuaikan instalasi Prometheus kamu agar otomatis terdeteksi
+    release: prometheus-kube-prometheus
+spec:
+  namespaceSelector:
+    any: true
+  selector:
+    matchLabels:
+      # Asumsi pod/service agent.py kamu menggunakan label ini
+      app: qti-agent
+  endpoints:
+  - port: http # Ganti dengan nama port yang ada di Service qti-agent kamu jika berbeda
+    path: /metrics
+    interval: 15s
