@@ -1,0 +1,11 @@
+apiVersion: monitoring.coreos.com/v1alpha1
+kind: ScrapeConfig
+metadata:
+  name: johan-qti-agent
+  namespace: monitoring
+  labels:
+    release: prometheus
+spec:
+  staticConfigs:
+    - targets: ['100.126.65.74:8000']
+  metricsPath: /metrics
