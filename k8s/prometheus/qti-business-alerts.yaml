@@ -1,0 +1,29 @@
+apiVersion: monitoring.coreos.com/v1
+kind: PrometheusRule
+metadata:
+  name: qti-business-alerts
+  namespace: monitoring
+  labels:
+    role: alert-rules
+    app: kube-prometheus-stack
+spec:
+  groups:
+  - name: qti-ai-pipeline.rules
+    rules:
+    - alert: QTI_OllamaTimeoutSpike
+      expr: rate(qti_agent_ollama_timeouts_total[5m]) > 0
+      for: 1m
+      labels:
+        severity: critical
+      annotations:
+        summary: "Ollama Timeout Terdeteksi"
+        description: "Terjadi timeout pada koneksi Ollama LLM dalam 5 menit terakhir."
+
+    - alert: QTI_AgentParseErrorHigh
+      expr: rate(qti_agent_parse_errors_total[5m]) > 0.05
+      for: 2m
+      labels:
+        severity: warning
+      annotations:
+        summary: "Tingginya JSON Parse Errors di QTI Agent"
+        description: "Agent gagal melakukan parsing JSON output dari LLM lebih dari threshold normal."
