@@ -1,11 +1,43 @@
 [
-  { "ticket_id": "REAL-001",
-    "raw_text": "curl http://10.10.10.2:11434/api/tags -> curl: (7) Failed to connect: Connection refused. ssh -L session spams 'channel 3: open failed: connect failed: Connection refused'. Mac Mini reachable (ping 0% loss, WireGuard handshake fresh) but nothing listening on 11434. LLM generation dead.",
-    "project_tags": ["infra", "ollama", "wireguard"] },
-  { "ticket_id": "REAL-002",
-    "raw_text": "Grafana alert cannot reach Loki: [sse.dataQueryError] dial tcp: lookup loki on 10.96.0.10:53: no such host, then dial tcp 10.96.106.44:3100: i/o timeout. Log-based alert flapping Firing/Resolved.",
-    "project_tags": ["monitoring", "loki", "grafana"] },
-  { "ticket_id": "REAL-003",
-    "raw_text": "docker ps shows container unhealthy; nginx error log reports bind() to 0.0.0.0:80 failed (98: Address already in use).",
-    "project_tags": ["docker", "nginx"] }
+  {
+    "ticket_id": "REAL-001",
+    "raw_text": "Cannot reach Ollama from the Tailscale mesh. curl http://100.79.30.90:11434/api/tags and curl http://100.68.225.41:11434/api/tags both return 'connection refused' from DEBIAN13 and from a Tailscale laptop. Ollama on the Mac Mini only binds to the WireGuard interface (OLLAMA_HOST=10.10.10.2:11434, wg0 subnet 10.10.10.0/24). The working path is an SSH local-forward through the controller: ssh -L 11434:10.10.10.2:11434 ferdi@100.94.99.125 (ED25519 key required, key-only auth). Closing the SSH session kills generation mid-run.",
+    "project_tags": ["ollama", "wireguard", "tailscale", "networking"]
+  },
+  {
+    "ticket_id": "REAL-002",
+    "raw_text": "Grafana shows the Loki datasource as unreachable — Explore with the Loki data source returns 502/Bad Gateway, and queries like {namespace=\"monitoring\"} fail. Loki endpoint http://loki.monitoring.svc:3100 is not responding; the StatefulSet pod is not Ready. Promtail DaemonSet is shipping but the push endpoint /loki/api/v1/push times out. No SOP currently exists for this failure mode.",
+    "project_tags": ["loki", "grafana", "promtail", "monitoring"]
+  },
+  {
+    "ticket_id": "REAL-003",
+    "raw_text": "nginx bind failed — the nginx container exits immediately on startup with 'bind() to 0.0.0.0:80 failed (98: Address already in use)'. Port 80 on the host is occupied by another process/container. Container fails to start, docker logs show the bind error.",
+    "project_tags": ["docker", "nginx"]
+  },
+  {
+    "ticket_id": "REAL-004",
+    "raw_text": "csi-nfs-controller snapshotter sidecar is flooding stderr with repeated reflector errors: 'Failed to watch' err='failed to list *v1.VolumeSnapshotClass: the server could not find the requested resource (get volumesnapshotclasses.snapshot.storage.k8s.io)' and the same for *v1.VolumeSnapshotContent (volumesnapshotcontents.snapshot.storage.k8s.io). Errors repeat every few seconds from pod csi-nfs-controller-7c9bdd7bdc-529hh on worker-1, namespace kube-system, app csi-driver-nfs. The snapshot.storage.k8s.io CRDs are not installed on the cluster, so the external-snapshotter informers cannot list/watch.",
+    "project_tags": ["kubernetes", "csi", "nfs", "snapshot", "crd"]
+  },
+  {
+    "ticket_id": "REAL-005",
+    "raw_text": "monitoring/loki (pod loki-0, worker-2): burst of level=error at 08:00-08:02Z — caller=retry.go:73 msg=\"error processing request\" try=0 err=\"context canceled\"; caller=scheduler_processor.go:182 msg=\"error notifying frontend about finished query\" err=\"rpc error: code = Canceled desc = context canceled\"; caller=batch.go:720 msg=\"error fetching chunks\" err=\"context canceled\"; caller=series_index_store.go:527 msg=\"error querying storage\" err=\"context canceled\"; dozens of canceled querier requests in two bursts.",
+    "project_tags": ["monitoring", "loki", "observability"]
+  },
+  {
+  "ticket_id": "REAL-006",
+  "raw_text": "kube-system/kube-proxy (pod kube-proxy-mzmpj, worker-2): E0729 reflector.go:227 \"Failed to watch\" err=\"failed to list *v1.EndpointSlice / *v1.Service / *v1.ServiceCIDR: Get https://10.20.20.201:6443/... : dial tcp 10.20.20.201:6443: connect: no route to host\" logger=\"UnhandledError\" — repeated 2026-07-29 13:24-13:30Z. worker-2 lost the network route to the k0s API server (controller 10.20.20.201), so kube-proxy's informers could not list/watch services or endpointslices.",
+  "project_tags": ["kubernetes", "networking", "kube-proxy", "control-plane"]
+  },
+  {
+    "ticket_id": "REAL-007",
+    "raw_text": "kube-system/csi-driver-nfs (container csi-resizer, csi-nfs-controller pod, worker-1): 2026-08-01T11:41Z leader-election lock acquisition for lease kube-system/external-resizer-nfs-csi-k8s-io failed with err=\"etcdserver: request timed out\", \"optimistically, falling back to slow path\". etcd/API-server request latency at that moment degraded leader election for the NFS CSI resizer.",
+    "project_tags": ["kubernetes", "csi", "etcd", "leader-election"]
+  },
+  {
+  "ticket_id": "REAL-008",
+  "raw_text": "argocd namespace (repo-server, application-controller, argocd-server pods, worker-1): 2026-08-01 11:33-11:43Z, all Argo CD components repeatedly failing to reach Redis at 10.99.87.5:6379 with 'i/o timeout'. Symptoms: 'redis: connection pool: failed to dial after 1 attempts', 'Failed to save cluster info', 'Failed to cache app resources', 'Error attempting to retrieve git references from cache', 'manifest cache error', 'failed to list refs' (GenerateManifest gRPC), 'Failed to resync revoked tokens'. Argo CD reconciliation degraded for ~10 minutes.",
+  "project_tags": ["argocd", "redis", "gitops", "caching"]
+  }
+
 ]
