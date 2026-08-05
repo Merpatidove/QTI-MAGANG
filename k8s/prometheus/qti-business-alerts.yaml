@@ -5,7 +5,7 @@ metadata:
   namespace: monitoring
   labels:
     role: alert-rules
-    app: kube-prometheus-stack
+    release: prometheus
 spec:
   groups:
   - name: qti-ai-pipeline.rules
