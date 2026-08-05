@@ -690,6 +690,94 @@ Two modes: "no such host" = the `loki` Service is not resolvable (missing/rename
 2. Service missing: restore via Argo CD (Loki is Argo-managed; force sync).
 3. Verify via port-forward: `curl -G http://localhost:3100/loki/api/v1/query_range --data-urlencode 'query={namespace="monitoring"}'`.
 
+# SOP-INF-005: VolumeSnapshot CRDs Missing (csi-snapshotter Reflector Failing)
+SOP_ID: SOP-INF-005
+Category: Infrastructure
+Confidence_Tier: B
+Tags: kubernetes, csi, storage, snapshot, crd
+
+## Context
+Error Signature: `reflector.go:227 "Failed to watch" err="failed to list *v1.VolumeSnapshotClass: the server could not find the requested resource (get volumesnapshotclasses.snapshot.storage.k8s.io)"`, and the identical failure for `*v1.VolumeSnapshotContent` (`volumesnapshotcontents.snapshot.storage.k8s.io`), `logger="UnhandledError"`, repeating every few seconds from the `csi-snapshotter` container of the `csi-nfs-controller` pod.
+
+The external-snapshotter v8 sidecar tries to list/watch the VolumeSnapshot resources, but the `snapshot.storage.k8s.io` CustomResourceDefinitions were never installed, so the API server returns "could not find the requested resource" and the reflector retries in a loop. The loop is noisy but non-fatal — NFS provisioning still works; only snapshot functionality is degraded.
+
+## Diagnosis
+1. `kubectl get crd | grep snapshot.storage.k8s.io` — empty output = the CRDs are missing.
+2. `kubectl logs -n kube-system <csi-nfs-controller-pod> -c csi-snapshotter --tail=20` — confirms the repeating reflector errors.
+
+## Remediation
+1. If snapshots are needed, install the CRDs (air-gapped: download the manifests on an internet machine, then apply): `kubectl apply -f snapshot.storage.k8s.io_volumesnapshotclasses.yaml` — and the same for `volumesnapshots` and `volumesnapshotcontents`.
+2. If NFS snapshots are not needed, remove the sidecar instead: `kubectl -n kube-system edit deployment csi-nfs-controller` and delete the `csi-snapshotter` container block.
+3. Verify: the reflector errors stop, and `kubectl get volumesnapshotclasses` returns a valid list if the CRDs were installed.
+
+---
+
+# SOP-INF-006: Worker Lost Route to Control Plane (API Server Unreachable)
+SOP_ID: SOP-INF-006
+Category: Infrastructure
+Confidence_Tier: B
+Tags: kubernetes, networking, kube-proxy, control-plane, wireguard
+
+## Context
+Error Signature: `kube-proxy reflector.go:227 "Failed to watch" err="failed to list *v1.EndpointSlice / *v1.ServiceCIDR / *v1.Node: Get \"https://10.20.20.201:6443/...\": dial tcp 10.20.20.201:6443: connect: no route to host"`, repeated across multiple informers from a single worker node.
+
+Two modes: "no route to host" = the worker's network path to the controller is broken (VPN/tunnel down, dropped route, or firewall blocking 10.20.20.0/24); "connection refused" = the path is fine but the API-server process itself is down. Compare with the other worker — if only one node fails, the problem is node-local.
+
+## Diagnosis
+1. `ip route get 10.20.20.201` + `ping -c 3 10.20.20.201` — confirm the route is missing on the affected worker.
+2. `sudo wg show` / `sudo systemctl status wg-quick@wg0` — check the tunnel/VPN state.
+3. `kubectl get nodes` — confirm only the one worker is affected.
+
+## Remediation
+1. Tunnel down: `sudo systemctl restart wg-quick@wg0` (or restart the relevant transport service).
+2. Firewall blocking: `sudo iptables -L -n | grep 10.20.20` — re-allow the 10.20.20.0/24 subnet (SOP-06 air-gap).
+3. Verify via: `kubectl get nodes` shows the worker `Ready` again and the kube-proxy reflector errors stop.
+
+---
+
+# SOP-INF-007: etcd Request Timeout During Leader Election
+SOP_ID: SOP-INF-007
+Category: Infrastructure
+Confidence_Tier: B
+Tags: kubernetes, etcd, leader-election, control-plane
+
+## Context
+Error Signature: leader-election lock acquisition for a lease (e.g. `kube-system/external-resizer-nfs-csi-k8s-io`) fails with `err="etcdserver: request timed out"`, and the controller logs `optimistically, falling back to slow path`.
+
+This indicates transient etcd latency or controller-side overload, not a crash — the leader-election client could not reach etcd within its timeout and fell back to the slow path. Usually transient; recurring occurrences point to etcd health or controller disk/CPU pressure.
+
+## Diagnosis
+1. `ETCDCTL_API=3 etcdctl endpoint health --cluster` — check etcd member health.
+2. `ETCDCTL_API=3 etcdctl endpoint status --cluster -w table` — check latency/leader.
+3. `iostat -x 1 5` + `uptime` — check controller disk I/O latency and load.
+
+## Remediation
+1. Transient / self-resolved: record the window and take no action.
+2. High etcd fragmentation: `ETCDCTL_API=3 etcdctl defrag --cluster` — only during a maintenance window.
+3. Verify via: `etcdctl endpoint health` reporting healthy with low latency and no repeated `etcdserver: request timed out` in the controller logs.
+
+---
+
+# SOP-INF-008: Argo CD Redis Unreachable
+SOP_ID: SOP-INF-008
+Category: Infrastructure
+Confidence_Tier: B
+Tags: argocd, redis, gitops, caching
+
+## Context
+Error Signature: Argo CD components (repo-server, application-controller, server) log `dial tcp 10.99.87.5:6379: i/o timeout` — `redis: connection pool: failed to dial after N attempts`, with symptoms like `Failed to save cluster info`, `Failed to cache app resources`, `manifest cache error`, and `failed to list refs`.
+
+Argo CD's caching layer (`argocd-redis` at 10.99.87.5:6379) is unreachable, so the components cannot cache manifests, git refs, or app resources — degrading reconciliation. Every component failing to reach the same ClusterIP points to the redis pod or its Service/Endpoints, not to individual components.
+
+## Diagnosis
+1. `kubectl -n argocd get pods -l app.kubernetes.io/name=argocd-redis` — pod Running/Pending/CrashLoop?
+2. `kubectl -n argocd get endpoints argocd-redis` — empty = no ready pod.
+3. `kubectl -n argocd logs -l app.kubernetes.io/name=argocd-redis --tail=100` — crash/eviction reason.
+
+## Remediation
+1. Pod down/CrashLoop: `kubectl -n argocd rollout restart deployment argocd-redis` (or `kubectl -n argocd delete pod argocd-redis-0` for a StatefulSet).
+2. Broken Service/selector: restore via Argo CD (force sync), since `argocd-redis` is GitOps-managed.
+3. Verify via: `kubectl -n argocd get endpoints argocd-redis` showing a ready address and the `dial tcp 10.99.87.5:6379` timeouts stopping.
 
 ## Appendix: Reference Parser (Python)
 
