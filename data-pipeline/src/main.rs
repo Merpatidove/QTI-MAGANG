@@ -4,13 +4,10 @@ use serde_json::json;
 use std::fs;
 use uuid::Uuid;
 
-// With the tunnel running, localhost:6333 IS the cluster's Qdrant.
 const QDRANT_URL: &str = "http://localhost:6333";
 const COLLECTION: &str = "qti_knowledge_base";
-const MAX_CHUNK_CHARS: usize = 500; // stay under MiniLM's 256-token window
+const MAX_CHUNK_CHARS: usize = 500;
 
-// Pack paragraphs into ~max_chars chunks. A fenced ```bash block is one
-// paragraph, so it never gets sliced mid-command.
 fn chunk_text(body: &str, max_chars: usize) -> Vec<String> {
     let mut chunks = Vec::new();
     let mut current = String::new();
@@ -28,7 +25,6 @@ fn chunk_text(body: &str, max_chars: usize) -> Vec<String> {
     chunks
 }
 
-// Read a "## Key: value" line if the SOP has it; else "unknown".
 fn field(block: &str, key: &str) -> String {
     for line in block.lines() {
         if let Some(rest) = line.trim().strip_prefix(key) {
@@ -39,23 +35,38 @@ fn field(block: &str, key: &str) -> String {
 }
 
 fn main() -> Result<()> {
-    // ---- READ ----
     println!("📖 Reading RAG_Manual.md ...");
     let content = fs::read_to_string("RAG_Manual.md")
         .context("Failed to read RAG_Manual.md — run from inside data-pipeline/")?;
-    let content = content.replace("\r\n", "\n"); // normalize Windows line endings
+    let content = content.replace("\r\n", "\n");
 
-    let blocks: Vec<&str> = content.split("\n# SOP-").collect();
-    let sops = &blocks[1..]; // block 0 is the intro before the first SOP
+    // Robust line-by-line parser: catches all SOPs regardless of spacing
+    let mut sops = Vec::new();
+    let mut current_block = String::new();
+
+    for line in content.lines() {
+        if line.starts_with("# SOP-") {
+            if !current_block.is_empty() {
+                sops.push(current_block);
+            }
+            current_block = line.trim_start_matches("# SOP-").to_string();
+        } else if !current_block.is_empty() {
+            current_block.push('\n');
+            current_block.push_str(line);
+        }
+    }
+    if !current_block.is_empty() {
+        sops.push(current_block);
+    }
+
     println!("✅ Found {} SOP entries.", sops.len());
 
-    // ---- EMBED ----
-    println!("🧠 Loading all-MiniLM-L6-v2 (384-dim) — first run downloads the model (~80 MB), this is normal ...");
+    println!("🧠 Loading all-MiniLM-L6-v2 (384-dim) ...");
     let model = TextEmbedding::try_new(InitOptions::new(EmbeddingModel::AllMiniLML6V2))
         .context("Failed to init embedding model")?;
 
     let mut points = Vec::new();
-    for block in sops {
+    for block in &sops {
         let first_line = block.lines().next().unwrap_or("");
         let (id, title) = match first_line.split_once(": ") {
             Some((i, t)) => (i.trim().to_string(), t.trim().to_string()),
@@ -65,7 +76,6 @@ fn main() -> Result<()> {
         let tier = field(block, "## Confidence Tier");
 
         let chunks = chunk_text(block, MAX_CHUNK_CHARS);
-        // prefix each chunk with id+title so the vector carries that context
         let texts: Vec<String> = chunks.iter()
             .map(|c| format!("SOP-{} {}: {}", id, title, c)).collect();
         let embeddings = model.embed(texts.clone(), None).context("embed failed")?;
@@ -87,7 +97,6 @@ fn main() -> Result<()> {
     }
     println!("✅ Built {} points total.", points.len());
 
-    // ---- UPSERT ----
     println!("⬆️  Upserting to {} ...", QDRANT_URL);
     let resp = reqwest::blocking::Client::new()
         .put(format!("{}/collections/{}/points", QDRANT_URL, COLLECTION))
