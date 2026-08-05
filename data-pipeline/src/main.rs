@@ -40,7 +40,6 @@ fn main() -> Result<()> {
         .context("Failed to read RAG_Manual.md — run from inside data-pipeline/")?;
     let content = content.replace("\r\n", "\n");
 
-    // Robust line-by-line parser: catches all SOPs regardless of spacing
     let mut sops = Vec::new();
     let mut current_block = String::new();
 
@@ -97,15 +96,40 @@ fn main() -> Result<()> {
     }
     println!("✅ Built {} points total.", points.len());
 
-    println!("⬆️  Upserting to {} ...", QDRANT_URL);
-    let resp = reqwest::blocking::Client::new()
-        .put(format!("{}/collections/{}/points", QDRANT_URL, COLLECTION))
-        .json(&json!({ "points": points }))
+    let client = reqwest::blocking::Client::new();
+
+    // ---- RESET COLLECTION (prevents duplicate points on re-runs) ----
+    println!("🗑️  Resetting collection {} ...", COLLECTION);
+    let _ = client.delete(format!("{}/collections/{}", QDRANT_URL, COLLECTION)).send();
+    let create_resp = client
+        .put(format!("{}/collections/{}", QDRANT_URL, COLLECTION))
+        .json(&json!({
+            "vectors": {
+                "size": 384,
+                "distance": "Cosine"
+            }
+        }))
         .send()
-        .context("upsert failed — is the tunnel window still open?")?;
-    let status = resp.status();
-    let body = resp.text().unwrap_or_default();
-    if !status.is_success() { anyhow::bail!("Qdrant error ({}): {}", status, body); }
-    println!("✅ Upsert OK: {}", body);
+        .context("failed to recreate collection")?;
+    if !create_resp.status().is_success() {
+        anyhow::bail!("Failed to create collection: {}", create_resp.text().unwrap_or_default());
+    }
+    println!("✅ Collection recreated (384-dim, Cosine).");
+
+    // ---- UPSERT IN BATCHES (prevents SSH tunnel drops on large payloads) ----
+    println!("⬆️  Upserting to {} in batches ...", QDRANT_URL);
+    let batch_size = 32;
+    for (i, batch) in points.chunks(batch_size).enumerate() {
+        let resp = client
+            .put(format!("{}/collections/{}/points", QDRANT_URL, COLLECTION))
+            .json(&json!({ "points": batch }))
+            .send()
+            .with_context(|| format!("upsert batch {} failed — is the tunnel window still open?", i))?;
+        let status = resp.status();
+        let body = resp.text().unwrap_or_default();
+        if !status.is_success() { anyhow::bail!("Qdrant error on batch {} ({}): {}", i, status, body); }
+        println!("   ✅ Batch {} OK ({} points)", i + 1, batch.len());
+    }
+    println!("✅ All upserts OK.");
     Ok(())
 }
