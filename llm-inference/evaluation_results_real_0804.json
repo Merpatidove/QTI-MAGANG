@@ -1,0 +1,47 @@
+[
+  {
+    "ticket_id": "REAL-001",
+    "5w1h_output": {
+      "what": "HTTP 503 error",
+      "where": "Mac Mini IP 10.10.10.2 port 11434",
+      "when": "Current moment",
+      "who": "User initiating the request",
+      "why": "The application is signaling it is unhealthy, and a successful probe reached the application without triggering any errors or crashes, indicating an issue with the application itself rather than networking or infrastructure.",
+      "how": "[{'step': 'Check what the health endpoint is actually reporting', 'command': 'kubectl exec <pod_name> -n <namespace> -- curl -s localhost:<port>/healthz'}]"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-K8S-002 Liveness Probe Failing (HTTP 503): ## Diagnosis\nA 503 response means the probe reached the application successfully — this is not a networking or crash issue, it is the application itself ",
+    "grounded": true,
+    "inference_time_sec": 14.0
+  },
+  {
+    "ticket_id": "REAL-002",
+    "5w1h_output": {
+      "what": "Network connectivity issue",
+      "where": "Application server to Loki host",
+      "when": "Unspecified, during Grafana alert execution",
+      "who": "Grafana alert system",
+      "why": "The application server cannot establish a TCP connection to the Loki host due to network path congestion or DNS resolution failure.",
+      "how": "[{'action': 'Check network connectivity', 'details': 'Use tools like ping, traceroute, and nslookup from the application server to the Loki host.'}, {'action': 'Review DNS configuration', 'details': \"Ensure that the DNS server (10.96.0.10) is correctly configured and can resolve the hostname 'loki'.\"}, {'action': 'Increase timeout settings', 'details': 'Adjust the network timeout settings on the application server to allow for longer connection attempts.'}]"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DB-001 MySQL Connection Timeout (SQLSTATE 2002): ## Context\nError Signature: SQLSTATE[HY000] [2002] Connection timed out, thrown from Illuminate\\Database\\Connectors\\Connector during a query, usual",
+    "grounded": true,
+    "inference_time_sec": 16.56
+  },
+  {
+    "ticket_id": "REAL-003",
+    "5w1h_output": {
+      "what": "Port is already in use",
+      "where": "Docker container running Nginx",
+      "when": "After scaling the docker compose service without updating port mappings",
+      "who": "User attempting to scale services using docker compose up --scale",
+      "why": "Two replicas of the same service are trying to bind the same host port simultaneously",
+      "how": "1. Identify the process or container holding the port with 'lsof -i :80' or 'netstat -tuln | grep :80'\n2. Stop the identified process/container\n3. Restart the Nginx service in the docker container"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "SOP-DOC-002 Healthcheck Failing — Port Already in Use: ## Context\nError Signature: `docker ps` shows the container as `unhealthy`; nginx error log reports `bind() to 0.0.0.0:80 failed (98: Address alr",
+    "grounded": true,
+    "inference_time_sec": 11.85
+  }
+]

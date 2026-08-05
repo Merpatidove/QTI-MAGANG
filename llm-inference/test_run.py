@@ -1,90 +1,124 @@
+"""HITE 5W1H evaluation harness (client — does NOT start a server).
+
+POSTs every ticket in the dataset to the agent's /process-ticket and writes
+evaluation_results.json for grade_result.py to score.
+
+Dataset switch: set DATASET to grade a different set, e.g.
+    $env:DATASET = "..\data-pipeline\real_tickets.json"
+Unset it to go back to the synthetic golden set.
+"""
+
 import json
 import os
 import time
+
 import requests
-from pathlib import Path
 
-base_dir = Path(__file__).parent.parent
-dataset_path = base_dir / "data-pipeline" / "golden_datasets.json"
-results_path = Path(__file__).parent / "evaluation_results.json"
-
-# The agent (agent.py) runs as a FastAPI service:  uvicorn agent:app --port 8000
-# The real pipeline is test_run -> agent -> Ollama (NOT the gateway /v1/query).
 AGENT_URL = os.environ.get("AGENT_URL", "http://127.0.0.1:8000")
 
-# Keep in sync with grade_result.py's PLACEHOLDER_HOW (§1.3.6).
-PLACEHOLDER_HOW = "pending sop search"
+SCRIPT_DIR = os.path.dirname(os.path.abspath(__file__))
+DEFAULT_DATASET = os.path.join(SCRIPT_DIR, "..", "data-pipeline", "golden_datasets.json")
+DATASET_PATH = os.environ.get("DATASET", DEFAULT_DATASET)
+OUTPUT_PATH = os.path.join(SCRIPT_DIR, "evaluation_results.json")
 
-with open(dataset_path, "r", encoding="utf-8") as f:
-    data = json.load(f)
+PLACEHOLDER_HOW = "Pending SOP search"
 
-# If the JSON is a dictionary containing a list of tickets, extract the list.
-if isinstance(data, dict):
-    tickets = data.get("tickets", [data])
-else:
-    tickets = data
 
-evaluation_data = []
+def load_tickets(path):
+    with open(path, encoding="utf-8") as f:
+        data = json.load(f)
 
-for index, ticket in enumerate(tickets):
-    start_time = time.time()
+    # Shape 1: flat array (real_tickets.json)
+    if isinstance(data, list):
+        return data
 
-    # Handle both dictionary objects and raw string inputs gracefully
-    raw_payload = ticket if isinstance(ticket, dict) else {"ticket_content": ticket}
-    ticket_id = raw_payload.get("ticket_id", f"TICKET_{index+1}")
+    if isinstance(data, dict):
+        # Shape 2: object wrapping a list of tickets, e.g. {"tickets": [...]}
+        for v in data.values():
+            if isinstance(v, list) and v and all(isinstance(t, dict) for t in v):
+                return v
+        # Shape 3: object keyed by ticket id, values are ticket dicts
+        tickets = [
+            {**v, "ticket_id": v.get("ticket_id", k)}
+            for k, v in data.items()
+            if isinstance(v, dict)
+            and ("raw_text" in v or "ticket_content" in v or "raw" in v)
+        ]
+        if tickets:
+            return tickets
 
-    # The agent's Ticket model accepts ticket_id + raw_text (project_tags is ignored).
+    raise SystemExit(
+        f"{path}: unrecognized dataset shape. Expected a flat ticket array "
+        "(real_tickets.json) or the wrapped form of golden_datasets.json."
+    )
+
+
+def ticket_text(t):
+    # tolerate the field-name variants seen across datasets
+    return (
+        t.get("raw_text")
+        or t.get("ticket_content")
+        or t.get("ticket_text")
+        or t.get("raw")
+        or ""
+    )
+
+
+def is_grounded(how):
+    how = (how or "").strip()
+    return bool(how) and PLACEHOLDER_HOW.lower() not in how.lower()
+
+
+def process_one(ticket):
     payload = {
-        "ticket_id": ticket_id,
-        "raw_text": raw_payload.get("ticket_content", raw_payload.get("raw_text", "Unknown content")),
-        "project_tags": raw_payload.get("project_tags", [])
+        "ticket_id": ticket.get("ticket_id", ""),
+        "raw_text": ticket_text(ticket),
+        "project_tags": ticket.get("project_tags", []),
     }
-
-    status_code = 0
-    w5h = {}
-    error = None
-    action_taken = None      # OBSERVATION: which tool the agent chose
-    result_preview = ""      # OBSERVATION: what the tool returned (first 300 chars)
+    start = time.time()
     try:
-        response = requests.post(f"{AGENT_URL}/process-ticket", json=payload, timeout=360)
-        status_code = response.status_code
-        if status_code == 200:
-            agent_resp = response.json()
-            if not isinstance(agent_resp, dict):
-                agent_resp = {}
-            # Extract the FLAT six-key 5W1H dict the grader expects (Fix B).
-            w5h = agent_resp.get("5w1h_output", agent_resp)
-            action_taken = agent_resp.get("action_taken")
-            result_preview = str(agent_resp.get("result", ""))[:300]
-        else:
-            error = f"HTTP {status_code}: {response.text[:200]}"
-    except Exception as e:
-        error = f"request error: {e}"
+        r = requests.post(f"{AGENT_URL}/process-ticket", json=payload, timeout=600)
+        r.raise_for_status()
+        resp = r.json()
+        error = None
+    except Exception as e:  # network / HTTP / JSON failure
+        resp = {}
+        error = f"{type(e).__name__}: {e}"
+    elapsed = time.time() - start
 
-    process_time = round(time.time() - start_time, 2)
+    out5w1h = resp.get("5w1h_output") or {}
+    how = out5w1h.get("how") or out5w1h.get("How") or ""
 
-    # OBSERVATION: per-ticket grounding flag (same rule as grade_result.py).
-    how = (w5h.get("how") or w5h.get("How") or "") if isinstance(w5h, dict) else ""
-    grounded = bool(how.strip()) and PLACEHOLDER_HOW not in how.lower()
-
-    result_entry = {
-        "ticket_id": ticket_id,
-        "inference_time_sec": process_time,
-        "status_code": status_code,
-        "5w1h_output": w5h,
-        "action_taken": action_taken,
-        "result_preview": result_preview,
-        "grounded": grounded,
+    return {
+        "ticket_id": payload["ticket_id"],
+        "5w1h_output": out5w1h,
+        "action_taken": resp.get("action_taken"),
+        "result_preview": (resp.get("result") or "")[:200],
+        "grounded": is_grounded(how) and error is None,
+        "inference_time_sec": round(elapsed, 2),
+        **({"error": error} if error else {}),
     }
-    if error:
-        # Top-level error -> grade_result.py skips this ticket's valid-JSON count.
-        result_entry["error"] = error
 
-    evaluation_data.append(result_entry)
-    tag = "OK" if error is None else f"ERR({error})"
-    print(f"[{index+1}/{len(tickets)}] {ticket_id} in {process_time}s grounded={grounded} {tag}")
 
-with open(results_path, "w", encoding="utf-8") as f:
-    json.dump(evaluation_data, f, indent=2, ensure_ascii=False)
+def main():
+    tickets = load_tickets(DATASET_PATH)
+    print(f"Dataset: {os.path.abspath(DATASET_PATH)} ({len(tickets)} tickets)")
 
-print(f"\nBatch processing complete. {len(evaluation_data)} tickets -> {results_path}")
+    results = []
+    for i, t in enumerate(tickets, 1):
+        row = process_one(t)
+        results.append(row)
+        status = "OK" if "error" not in row else "ERR"
+        print(
+            f"[{i}/{len(tickets)}] {row['ticket_id']} "
+            f"in {row['inference_time_sec']}s grounded={row['grounded']} {status}"
+        )
+
+    with open(OUTPUT_PATH, "w", encoding="utf-8") as f:
+        json.dump(results, f, ensure_ascii=False, indent=2)
+
+    print(f"\nBatch processing complete. {len(results)} tickets -> {OUTPUT_PATH}")
+
+
+if __name__ == "__main__":
+    main()

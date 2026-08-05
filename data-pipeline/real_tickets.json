@@ -1,0 +1,11 @@
+[
+  { "ticket_id": "REAL-001",
+    "raw_text": "curl http://10.10.10.2:11434/api/tags -> curl: (7) Failed to connect: Connection refused. ssh -L session spams 'channel 3: open failed: connect failed: Connection refused'. Mac Mini reachable (ping 0% loss, WireGuard handshake fresh) but nothing listening on 11434. LLM generation dead.",
+    "project_tags": ["infra", "ollama", "wireguard"] },
+  { "ticket_id": "REAL-002",
+    "raw_text": "Grafana alert cannot reach Loki: [sse.dataQueryError] dial tcp: lookup loki on 10.96.0.10:53: no such host, then dial tcp 10.96.106.44:3100: i/o timeout. Log-based alert flapping Firing/Resolved.",
+    "project_tags": ["monitoring", "loki", "grafana"] },
+  { "ticket_id": "REAL-003",
+    "raw_text": "docker ps shows container unhealthy; nginx error log reports bind() to 0.0.0.0:80 failed (98: Address already in use).",
+    "project_tags": ["docker", "nginx"] }
+]
