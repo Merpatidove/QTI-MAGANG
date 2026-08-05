@@ -648,6 +648,49 @@ Escalation note: since the right fix depends on whether the 503 reflects a real 
 
 ---
 
+# SOP-INF-003: Ollama Unreachable over WireGuard (Connection Refused)
+SOP_ID: SOP-INF-003
+Category: Infrastructure
+Confidence_Tier: A
+Tags: ollama, wireguard, llm, connection-refused
+
+## Context
+Error Signature: `curl http://10.10.10.2:11434/api/tags` -> `curl: (7) Failed to connect to 10.10.10.2 port 11434 ... Connection refused`; SSH local-forward spams `channel 3: open failed: connect failed: Connection refused`.
+
+The Mac Mini hosts Ollama (at incident time bound to the WireGuard interface, OLLAMA_HOST=10.10.10.2:11434). "Connection refused" (not timeout) means the box and the path are UP but nothing is listening on 11434 — the Ollama service itself is down.
+
+## Diagnosis
+1. `ping -c 3 10.10.10.2` — 0% loss = Mac Mini reachable (not off).
+2. `sudo wg show wg0` — fresh handshake = WireGuard healthy.
+3. Both pass but 11434 refuses = Ollama not running / not bound.
+
+## Remediation
+1. On the Mac Mini: `OLLAMA_HOST=10.10.10.2:11434 ollama serve`.
+2. Verify: `curl http://10.10.10.2:11434/api/tags` (expect the model list).
+3. Make durable: Ollama LaunchDaemon with KeepAlive (WireGuard's com.wireguard.wg0.plist auto-starts; Ollama may not).
+
+# SOP-INF-004: Loki Datasource Unreachable (DNS no such host / i/o timeout)
+SOP_ID: SOP-INF-004
+Category: Infrastructure
+Confidence_Tier: B
+Tags: loki, grafana, dns, timeout
+
+## Context
+Error Signature: `[sse.dataQueryError] ... dial tcp: lookup loki on 10.96.0.10:53: no such host` and `dial tcp 10.96.106.44:3100: i/o timeout`. Grafana alerting cannot query Loki.
+
+Two modes: "no such host" = the `loki` Service is not resolvable (missing/renamed); "i/o timeout" on the ClusterIP = Service resolves but the Loki pod is unhealthy / has no ready endpoints.
+
+## Diagnosis
+1. `kubectl get svc -n monitoring loki` — confirm Service + ClusterIP.
+2. `kubectl get pods -n monitoring -l app.kubernetes.io/name=loki` — StatefulSet status.
+3. `kubectl get endpoints -n monitoring loki` — empty = no ready pod.
+
+## Remediation
+1. Pod down/CrashLoop: `kubectl rollout restart statefulset/loki -n monitoring`.
+2. Service missing: restore via Argo CD (Loki is Argo-managed; force sync).
+3. Verify via port-forward: `curl -G http://localhost:3100/loki/api/v1/query_range --data-urlencode 'query={namespace="monitoring"}'`.
+
+
 ## Appendix: Reference Parser (Python)
 
 The snippet below illustrates how a grading script can extract the structured fields from this manual — splitting on entry boundaries, then pulling metadata, error signature, and the remediation command out of each block.
