@@ -1,882 +1,122 @@
 [
   {
-    "ticket_id": "TKT-1001",
-    "inference_time_sec": 23.14,
-    "status_code": 200,
+    "ticket_id": "REAL-001",
     "5w1h_output": {
-      "what": "MySQL Connection Timeout",
-      "where": "db-prod-03.internal",
-      "when": "2026-07-10 11:20:00",
-      "who": "app_user",
-      "why": "The connection timed out due to high load on the database host and a large wait queue.",
-      "how": "['Confirm the DB host is reachable and check current connection load by running the following commands:', 'mysqladmin -h db-prod-03.internal -u app_user -p ping', 'mysqladmin -h db-prod-03.internal -u app_user -p status | grep Threads_connected', \"Raise the PDO connection timeout in config/database.php by setting the 'options' key to [PDO::ATTR_TIMEOUT => 10]\", 'Clear and rebuild the config cache so the change takes effect by running:', 'php artisan config:clear', 'php artisan config:cache --env=production']"
+      "Who": "DEBIAN13, Tailscale Laptop",
+      "What": "Cannot reach Ollama from the Tailscale mesh",
+      "When": "Incident time",
+      "Where": "Mac Mini",
+      "Why": "Ollama service itself is down. Connection refused means the box and the path are UP but nothing is listening on port 11434.",
+      "How": "Pending SOP search"
     },
     "action_taken": "search_sop",
-    "result_preview": "SOP-DB-001 MySQL Connection Timeout (SQLSTATE 2002): ## Remediation\n```bash\n# 1. Confirm the DB host is reachable and check current connection load\nmysqladmin -h db-prod-03.internal -u app_user -p ping\nmysqladmin -h db-prod-03.internal -u app_user -p status | grep Threads_connected\n\n# 2. Raise the P",
-    "grounded": true
+    "result_preview": "{\"proposed_fix\": \"SOP-INF-003 Ollama Unreachable over WireGuard (Connection Refused): The Mac Mini hosts Ollama (at incident time bound to the WireGuard interface, OLLAMA_HOST=10.10.10.2:11434). \\\"Con",
+    "grounded": false,
+    "inference_time_sec": 20.5
   },
   {
-    "ticket_id": "TKT-1002",
-    "inference_time_sec": 17.91,
-    "status_code": 200,
+    "ticket_id": "REAL-002",
     "5w1h_output": {
-      "what": "Permission denied error when writing to a log file in a Docker container",
-      "where": "/var/www/html/storage/logs/laravel.log",
-      "when": "2026-07-10 12:04:00",
-      "who": "billing-service-worker-1 running as www-data (uid=1000)",
-      "why": "The log directory is owned by root on the host, while the container process runs as a non-root user (www-data). This occurs when a bind-mounted volume is recreated on a new host with default root ownership.",
-      "how": "Change the ownership of the log directory to www-data inside the container. Use the following command inside the container: `chown -R www-data:www-data /var/www/html/storage/logs`"
+      "Who": "IT-Support",
+      "What": "Loki datasource unreachable in Grafana",
+      "When": "Current time",
+      "Where": "http://loki.monitoring.svc:3100 and Loki pods",
+      "Why": "DNS resolution failure or network timeout",
+      "How": "Refer to SOP-INF-004 for troubleshooting steps"
     },
     "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-003 Volume Mount Permission Denied: ## Context\nError Signature: \"failed to write to /var/www/html/storage/logs/laravel.log: Permission denied\"; `ls -la` inside the container shows the log directory owned by `root` while the container process runs as a non-root user.\nThis occurs when a bind-m",
-    "grounded": true
+    "result_preview": "{\"proposed_fix\": \"SOP-INF-004 Loki Datasource Unreachable (DNS no such host / i/o timeout): INF-004: Loki Datasource Unreachable (DNS no such host / i/o timeout)\\nSOP_ID: SOP-INF-004\\nCategory: Infras",
+    "grounded": true,
+    "inference_time_sec": 17.93
   },
   {
-    "ticket_id": "TKT-1003",
-    "inference_time_sec": 16.43,
-    "status_code": 200,
+    "ticket_id": "REAL-003",
     "5w1h_output": {
-      "what": "Dependency Crash Loop",
-      "where": "docker compose environment",
-      "when": "MySQL restarts after InnoDB crash recovery",
-      "who": "Worker container and Database container (eventin-worker-1 and eventin-db-1)",
-      "why": "The `depends_on` healthcheck on the database passes before MySQL finishes InnoDB crash recovery, allowing the worker to start connecting to a not yet ready MySQL instance.",
-      "how": "Modify the `docker-compose.yml` to ensure that the MySQL service is fully started and ready to accept connections before other services attempt to connect. This can be done by adding an additional healthcheck in the MySQL service definition that waits for specific InnoDB status indicators."
+      "Who": "HITE",
+      "What": "nginx container fails to start due to port 80 already in use",
+      "When": "Nginx container starts and attempts to bind to port 80 on the host",
+      "Where": "Host where Docker is running",
+      "Why": "Another process or container on the host is using port 80, conflicting with nginx's attempt to bind to it",
+      "How": "Pending SOP search"
     },
     "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-004 Dependency Crash Loop (depends_on Race): ## Context\nError Signature: a worker container repeatedly restarts with \"No route to host\" or SQLSTATE 2002 while the `db` service shows as `healthy` in `docker compose ps`; worker logs show retry attempts counting up to a fixed maximum before exi",
-    "grounded": true
+    "result_preview": "{\"proposed_fix\": \"SOP-DOC-002 Healthcheck Failing \\u2014 Port Already in Use: ## Context\\nError Signature: `docker ps` shows the container as `unhealthy`; nginx error log reports `bind() to 0.0.0.0:80",
+    "grounded": false,
+    "inference_time_sec": 14.11
   },
   {
-    "ticket_id": "TKT-1004",
-    "inference_time_sec": 16.95,
-    "status_code": 200,
+    "ticket_id": "REAL-004",
     "5w1h_output": {
-      "what": "Port Already in Use Error",
-      "where": "Localhost Port 80",
-      "when": "[2026-07-10 13:43:00]",
-      "who": "Service spk-saw-umkm-worker-1",
-      "why": "Two replicas of the same service attempted to bind the same host port simultaneously after a `docker compose up --scale` change that was not matched by an updated port mapping.",
-      "how": "1. Identify and stop one of the conflicting containers using the command `$ docker rm -f <container_id>`. 2. Update your docker-compose.yml file to ensure each service has a unique port mapping. 3. Restart the services with the new configuration using `$ docker compose up --scale`."
+      "Who": "csi-nfs-controller sidecar",
+      "What": "Reflector errors due to missing VolumeSnapshot CRDs",
+      "When": "Every few seconds",
+      "Where": "Pod csi-nfs-controller-7c9bdd7bdc-529hh on worker-1, namespace kube-system",
+      "Why": "The external-snapshotter informers cannot list/watch because the snapshot.storage.k8s.io CRDs are not installed on the cluster.",
+      "How": "Install the missing VolumeSnapshot CRDs as described in SOP-INF-005."
     },
     "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-002 Healthcheck Failing — Port Already in Use: ## Context\nError Signature: `docker ps` shows the container as `unhealthy`; nginx error log reports `bind() to 0.0.0.0:80 failed (98: Address already in use)`.\nThis occurs when two replicas of the same service attempt to bind the same host port ",
-    "grounded": true
+    "result_preview": "{\"proposed_fix\": \"SOP-INF-005 VolumeSnapshot CRDs Missing (csi-snapshotter Reflector Failing): ## Context\\nError Signature: `reflector.go:227 \\\"Failed to watch\\\" err=\\\"failed to list *v1.VolumeSnapsho",
+    "grounded": true,
+    "inference_time_sec": 16.1
   },
   {
-    "ticket_id": "TKT-1005",
-    "inference_time_sec": 15.15,
-    "status_code": 200,
+    "ticket_id": "REAL-005",
     "5w1h_output": {
-      "what": "Lock wait timeout exceeded error during `ALTER TABLE` statement",
-      "where": "staging environment, host db-staging-01.internal",
-      "when": "2026-07-10 10:48:00",
-      "who": "the application running migrations",
-      "why": "Another transaction is holding a lock on the `attendance_logs` table while the migration attempts to alter it, causing the lock wait timeout.",
-      "how": "Restart the migration with increased lock wait timeout. Example command: php artisan migrate --force --timeout=600"
+      "Who": "monitoring/loki",
+      "What": "burst of level=error at 08:00-08:02Z — caller=retry.go:73 msg=\"error processing request\" try=0 err=\"context canceled\"",
+      "When": "08:00-08:02Z",
+      "Where": "pod loki-0, worker-2",
+      "Why": "SOP-K8S-002 Liveness Probe Failing (HTTP 503): The liveness probe failed repeatedly, causing the container to restart. This indicates that despite responding with a status code, the process might not be ready to serve traffic.",
+      "How": "Review and adjust the health check endpoint or thresholds as per SOP-K8S-002."
     },
     "action_taken": "search_sop",
-    "result_preview": "SOP-DB-003 Migration Lock Wait Timeout (Error 1205): ## Context\nError Signature: SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded, raised during an `ALTER TABLE` statement run via `php artisan migrate --force`, with the migration appearing to hang for several minutes before failing.\nT",
-    "grounded": true
+    "result_preview": "{\"proposed_fix\": \"SOP-K8S-002 Liveness Probe Failing (HTTP 503): ## Context\\nError Signature: a Kubernetes Warning event with reason `Unhealthy` reporting \\\"Liveness probe failed: HTTP probe failed wi",
+    "grounded": true,
+    "inference_time_sec": 19.07
   },
   {
-    "ticket_id": "TKT-1006",
-    "inference_time_sec": 16.07,
-    "status_code": 200,
+    "ticket_id": "REAL-006",
     "5w1h_output": {
-      "what": "Git push rejected due to non-fast-forward update",
-      "where": "git.internal:presensi-akademik.git",
-      "when": "The error occurred when trying to push the detached HEAD commit to the 'bugfix/pdf-export' branch",
-      "who": "Rangga.A (developer)",
-      "why": "Developer checked out a specific commit directly and made changes without creating a branch, leaving those changes unreachable from any branch.",
-      "how": "1. Create a new branch from the current commit: git checkout -b bugfix/pdf-export\n2. Make necessary changes on this new branch.\n3. Push the changes to the remote repository: git push origin bugfix/pdf-export"
+      "Who": "kube-proxy on worker-2",
+      "What": "Failed to watch services and endpoint slices due to network route loss to k0s API server at 10.20.20.201",
+      "When": "Repeated from 2026-07-29 13:24-13:30Z",
+      "Where": "worker-2",
+      "Why": "Worker lost network route to the k0s API server, preventing kube-proxy's informers from listing/watching services and endpoint slices",
+      "How": "Pending SOP search"
     },
     "action_taken": "search_sop",
-    "result_preview": "SOP-GIT-003 Detached HEAD / Non-Fast-Forward Push Rejection: ## Context\nError Signature: `git push` is rejected with \"! [rejected] HEAD -> <branch> (non-fast-forward),\" and `git status` reports \"HEAD detached at <commit>,\" indicating commits were made without an active branch reference.\nThis occurs ",
-    "grounded": true
+    "result_preview": "{\"proposed_fix\": \"SOP-INF-006 Worker Lost Route to Control Plane (API Server Unreachable): ## Context\\nError Signature: `kube-proxy reflector.go:227 \\\"Failed to watch\\\" err=\\\"failed to list *v1.Endpoi",
+    "grounded": false,
+    "inference_time_sec": 18.09
   },
   {
-    "ticket_id": "TKT-1007",
-    "inference_time_sec": 15.56,
-    "status_code": 200,
+    "ticket_id": "REAL-007",
     "5w1h_output": {
-      "what": "Dependency Crash Loop",
-      "where": "docker compose",
-      "when": "MySQL restarts and performs InnoDB crash recovery",
-      "who": "Worker container",
-      "why": "The `depends_on` healthcheck on the `db` service reports it as healthy before MySQL has fully finished InnoDB crash recovery, allowing connections before they are ready.",
-      "how": "Update the healthcheck to wait for a more specific endpoint or status that indicates MySQL is fully ready to accept application connections. Alternatively, increase the timeout for the `depends_on` healthcheck."
+      "Who": "kube-system/csi-driver-nfs",
+      "What": "leader-election lock acquisition for lease kube-system/external-resizer-nfs-csi-k8s-io failed with err=\"etcdserver: request timed out\"",
+      "When": "2026-08-01T11:41Z",
+      "Where": "worker-1",
+      "Why": "etcd server request timeout during leader election",
+      "How": "SOP-INF-007: etcd Request Timeout During Leader Election, optimistically falling back to slow path"
     },
     "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-004 Dependency Crash Loop (depends_on Race): ## Context\nError Signature: a worker container repeatedly restarts with \"No route to host\" or SQLSTATE 2002 while the `db` service shows as `healthy` in `docker compose ps`; worker logs show retry attempts counting up to a fixed maximum before exi",
-    "grounded": true
+    "result_preview": "{\"proposed_fix\": \"SOP-INF-007 etcd Request Timeout During Leader Election: INF-007: etcd Request Timeout During Leader Election\\nSOP_ID: SOP-INF-007\\nCategory: Infrastructure\\nConfidence_Tier: B\\nTags",
+    "grounded": true,
+    "inference_time_sec": 16.39
   },
   {
-    "ticket_id": "TKT-1008",
-    "inference_time_sec": 15.56,
-    "status_code": 200,
+    "ticket_id": "REAL-008",
     "5w1h_output": {
-      "what": "MySQL database experiencing 'Too many connections' error",
-      "where": "db-prod-01.internal",
-      "when": "2026-07-10 10:27:00",
-      "who": "developer running `php artisan queue:work --queue=emails` locally against the shared staging DB",
-      "why": "The number of concurrent client connections has exceeded the database's configured 'max_connections' limit",
-      "how": "Increase the MySQL server's 'max_connections' parameter to accommodate more concurrent connections, or identify and address the root cause of the excessive connection usage (e.g., unclosed connections, inefficient queries, etc.)"
+      "Who": "IT-Support Team",
+      "What": "Argo CD components failing to reach Redis",
+      "When": "2026-08-01 11:33-11:43Z",
+      "Where": "argocd namespace (repo-server, application-controller, argocd-server pods, worker-1)",
+      "Why": "Failed to establish Redis connection due to 'i/o timeout'",
+      "How": "Pending SOP search"
     },
     "action_taken": "search_sop",
-    "result_preview": "SOP-DB-002 MySQL Too Many Connections (SQLSTATE 1040): ## Context\nError Signature: SQLSTATE[HY000] [1040] Too many connections, typically thrown from a queue worker or artisan command, with `Threads_connected` at or above `max_connections` in the MySQL status output.\nThis happens when the number of ",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1009",
-    "inference_time_sec": 18.7,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "rebase conflict requiring manual resolution",
-      "where": "local Git repository, app/Models/User.php file",
-      "when": "during the execution of a git rebase command with conflicts",
-      "who": "the user performing the rebase operation",
-      "why": "a rebase replays commits individually and can surface logical conflicts repeatedly across several commits in the sequence, requiring each conflict to be resolved one at a time.",
-      "how": "[{'step': 'Identify files with unresolved conflicts', 'command': 'git status'}, {'step': 'List conflicting file names', 'command': 'git diff --name-only --diff-filter=U'}, {'step': 'Resolve conflict markers in each listed file', 'description': 'Manually edit the files to resolve conflicts.'}, {'step': 'Mark resolved files as added', 'command': 'git add <file>'}, {'step': 'Continue the rebase process', 'command': 'git rebase --continue'}]"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-GIT-002 Rebase Conflict Requiring Manual Resolution: ## Diagnosis\nBecause a rebase replays commits individually, this can surface the same logical conflict repeatedly across several commits in the sequence — each one must be resolved in turn rather than all at once.\n\n## Remediation\n```bash\n# 1. ",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1010",
-    "inference_time_sec": 13.1,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "git merge",
-      "where": "origin/develop",
-      "when": "",
-      "who": "johan.p, rangga.a",
-      "why": "Conflict in composer.lock due to simultaneous edits by multiple users.",
-      "how": "Pending SOP search"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-GIT-004 Lockfile Conflict (composer.lock / package-lock.json): ## Context\nError Signature: `git pull` or `git merge` reports a conflict specifically inside `composer.lock` or `package-lock.json`, with conflict markers surrounding a version-number mismatch for the same package.\nThis occurs when t",
-    "grounded": false
-  },
-  {
-    "ticket_id": "TKT-1011",
-    "inference_time_sec": 16.75,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Container OOMKilled",
-      "where": "docker-compose.yml",
-      "when": "[2026-07-10 12:38:00]",
-      "who": "eventin-nginx-1",
-      "why": "The container's configured memory limit is smaller than the peak memory footprint of the workload, leading to an Out of Memory error.",
-      "how": "# 1. Confirm the OOM kill in the kernel log\ndmesg | grep -i \"out of memory\" | tail -5\n# 2. Raise the container's memory limit in docker-compose.yml\nmem_limit: 1024m -> mem_limit: 2048m"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-001 Container OOMKilled (Exit Code 137): ## Diagnosis\nThe container's configured memory limit is smaller than the peak memory footprint of the workload it is running — frequently a CSV/report export that loads an entire dataset into memory rather than processing it in chunks.\n\n## Remediation",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1012",
-    "inference_time_sec": 14.64,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Git merge conflict due to CRLF/LF line ending differences",
-      "where": "composer.lock file",
-      "when": "During git merge operation",
-      "who": "Contributors on different operating systems with conflicting core.autocrlf settings (Windows vs WSL)",
-      "why": "Core.autocrlf settings cause inconsistent line ending conversions, leading to Git detecting whole-file differences for minor content edits",
-      "how": "Resolve by setting the appropriate core.autocrlf value for your OS or reconfigure Git to handle line endings more gracefully. E.g., use 'git config --global core.autocrlf true' on Windows or 'git config --global core.autocrlf input' on WSL"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-GIT-006 CRLF/LF Line Ending Conflict: ## Context\nError Signature: `git merge` warns \"LF will be replaced by CRLF in <file>\" followed by a conflict in that same file, where `git diff` shows nearly every line as changed even though the actual content edits were small.\nThis occurs when contributors",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1013",
-    "inference_time_sec": 13.23,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Port conflict on host",
-      "where": "Localhost",
-      "when": "2 minutes ago",
-      "who": "billing-service-app-1",
-      "why": "Two replicas of the same service attempted to bind the same host port simultaneously after a `docker compose up --scale` change.",
-      "how": "Restart the Docker containers with updated port mappings or ensure that only one replica is running on the specified port."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-002 Healthcheck Failing — Port Already in Use: ## Context\nError Signature: `docker ps` shows the container as `unhealthy`; nginx error log reports `bind() to 0.0.0.0:80 failed (98: Address already in use)`.\nThis occurs when two replicas of the same service attempt to bind the same host port ",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1014",
-    "inference_time_sec": 12.17,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "lockfile conflict",
-      "where": "package-lock.json",
-      "when": "during git pull or git merge",
-      "who": "two contributors",
-      "why": "each ran composer update/npm install independently, resulting in slightly different dependency resolutions",
-      "how": "1. Run `git fetch origin` to get the latest changes\n2. Manually resolve the conflict by editing package-lock.json\n3. Choose a version that satisfies both contributors' updates\n4. Commit the resolved package-lock.json\n5. Push the changes to resolve the merge conflict"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-GIT-004 Lockfile Conflict (composer.lock / package-lock.json): ## Context\nError Signature: `git pull` or `git merge` reports a conflict specifically inside `composer.lock` or `package-lock.json`, with conflict markers surrounding a version-number mismatch for the same package.\nThis occurs when t",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1015",
-    "inference_time_sec": 15.84,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Lockfile conflict",
-      "where": "app/Models/User.php",
-      "when": "git pull or git merge on hotfix/auth-guard branch",
-      "who": "two teammates",
-      "why": "Each teammate ran `composer update` / `npm install`, resulting in slightly different dependency resolutions, leading to version-number mismatches in `composer.lock` / `package-lock.json`. This caused a conflict during the `git pull` or `git merge` operation.",
-      "how": "1. Identify the conflicting lockfiles and their contents.\n2. Resolve the conflicts manually by choosing the appropriate versions of dependencies.\n3. Run `composer install` (or `npm install`) to regenerate the lockfile with the resolved dependencies.\n4. Stage the resolved files for commit.\n5. Commit the changes.\n6. Push the resolved branch to the remote repository."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-GIT-004 Lockfile Conflict (composer.lock / package-lock.json): ## Context\nError Signature: `git pull` or `git merge` reports a conflict specifically inside `composer.lock` or `package-lock.json`, with conflict markers surrounding a version-number mismatch for the same package.\nThis occurs when t",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1016",
-    "inference_time_sec": 4.91,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "",
-      "where": "",
-      "when": "",
-      "who": "",
-      "why": "",
-      "how": "Pending SOP search"
-    },
-    "action_taken": "none",
-    "result_preview": "",
-    "grounded": false
-  },
-  {
-    "ticket_id": "TKT-1017",
-    "inference_time_sec": 15.17,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Lock wait timeout exceeded during database migration",
-      "where": "db-prod-03.internal",
-      "when": "2026-07-10 08:31:00",
-      "who": "staging environment",
-      "why": "An unrelated long-running report query is holding a lock on the `users` table, preventing the migration from acquiring necessary locks.",
-      "how": "Stop the long-running report query and rerun the migration. Alternatively, wait for the report query to complete naturally."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DB-003 Migration Lock Wait Timeout (Error 1205): ## Context\nError Signature: SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded, raised during an `ALTER TABLE` statement run via `php artisan migrate --force`, with the migration appearing to hang for several minutes before failing.\nT",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1018",
-    "inference_time_sec": 19.83,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Git merge conflict",
-      "where": "database/migrations/2026_07_01_add_status_column.php",
-      "when": "Last hour, when johan.p and fajar.m both edited the same route group block.",
-      "who": "johan.p and fajar.m",
-      "why": "Both branches changed overlapping lines of the same file since their common ancestor, causing a merge conflict.",
-      "how": "['Open the conflicting file in a text editor.', 'Identify the conflict markers (`<<<<<<<`, `=======`, `>>>>>>>`).', 'Manually edit the file to resolve the conflicts, choosing which version of the code to keep or merging both versions as necessary.', 'Save the changes to the file.', 'Add the resolved file to the staging area using `git add <file>`. If multiple files are resolved, you can use `git add .`.', \"Commit the merge with a message describing the conflict resolution: `git commit -m 'Resolved merge conflict in database/migrations/2026_07_01_add_status_column.php'`\"]"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-GIT-001 Standard Merge Conflict: ## Context\nError Signature: `git merge` reports \"CONFLICT (content): Merge conflict in <file>\" and \"Automatic merge failed; fix conflicts and then commit the result,\" with `git status` listing the file under \"both modified.\"\nThis occurs when two branches both cha",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1019",
-    "inference_time_sec": 18.01,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Permission denied error when attempting to write to the Laravel log file",
-      "where": "/var/www/html/storage/logs/laravel.log in a Docker container",
-      "when": "[2026-07-10 14:06:00] eventin-worker-1",
-      "who": "non-root user (uid=1000, www-data) running inside the Docker container",
-      "why": "The bind-mounted volume was recreated on a new host with default root ownership, while the container's runtime user does not have write access.",
-      "how": "Change the ownership of the log directory to match the uid of the container runtime user. Use the following command inside the container: `chown -R www-data:www-data /var/www/html/storage/logs`"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-003 Volume Mount Permission Denied: ## Context\nError Signature: \"failed to write to /var/www/html/storage/logs/laravel.log: Permission denied\"; `ls -la` inside the container shows the log directory owned by `root` while the container process runs as a non-root user.\nThis occurs when a bind-m",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1020",
-    "inference_time_sec": 13.42,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Lockfile conflict in package-lock.json",
-      "where": "bugfix/pdf-export branch",
-      "when": "Last hour",
-      "who": "rangga.a and johan.p",
-      "why": "Both contributors independently updated dependencies, resulting in conflicting versions in package-lock.json.",
-      "how": "1. Identify the conflicting version ranges in package-lock.json.\n2. Decide on a single version to resolve the conflict based on project requirements or peer review.\n3. Update package-lock.json with the chosen version manually or using npm install --legacy-peer-deps if necessary.\n4. Stage and commit the resolved package-lock.json file.\n5. Retry the git merge."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-GIT-004 Lockfile Conflict (composer.lock / package-lock.json): ## Context\nError Signature: `git pull` or `git merge` reports a conflict specifically inside `composer.lock` or `package-lock.json`, with conflict markers surrounding a version-number mismatch for the same package.\nThis occurs when t",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1021",
-    "inference_time_sec": 13.04,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "CRLF/LF line ending conflict",
-      "where": "Git repository during merge operation",
-      "when": "During a git merge command",
-      "who": "Contributors on different operating systems with differing core.autocrlf settings (Windows vs WSL)",
-      "why": "Different `core.autocrlf` settings lead to inconsistent line endings, causing Git to detect large diffs that are mostly cosmetic.",
-      "how": "Resolve the conflict by manually editing the conflicting file(s), ensuring consistency in line endings. Set a global `core.autocrlf` configuration to avoid future conflicts."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-GIT-006 CRLF/LF Line Ending Conflict: ## Context\nError Signature: `git merge` warns \"LF will be replaced by CRLF in <file>\" followed by a conflict in that same file, where `git diff` shows nearly every line as changed even though the actual content edits were small.\nThis occurs when contributors",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1022",
-    "inference_time_sec": 16.66,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Git push rejected due to non-fast-forward update",
-      "where": "git.internal:hite-core.git",
-      "when": "Not specified in the ticket, likely recent",
-      "who": "johan.p",
-      "why": "Johan.p checked out a specific commit directly for testing and made changes without creating a branch first, resulting in an orphaned commit that cannot be fast-forward pushed.",
-      "how": "Create a new branch from the current HEAD, make your changes on this branch, and then push the branch. Steps:\n1. git checkout -b feature/livewire-form\n2. Make necessary changes\n3. git add .\n4. git commit -m 'Your commit message'\n5. git push origin feature/livewire-form"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-GIT-003 Detached HEAD / Non-Fast-Forward Push Rejection: ## Context\nError Signature: `git push` is rejected with \"! [rejected] HEAD -> <branch> (non-fast-forward),\" and `git status` reports \"HEAD detached at <commit>,\" indicating commits were made without an active branch reference.\nThis occurs ",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1023",
-    "inference_time_sec": 15.06,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Stale read from Read Replica",
-      "where": "db-staging-02.internal",
-      "when": "2026-07-10 11:16:00",
-      "who": "user dwi.k",
-      "why": "The application attempted to read data from a replica immediately after writing to the primary, before replication had caught up.",
-      "how": "Ensure that the application reads data only from the primary database when performing write operations and that any subsequent read operations are performed on the replicas. Implement appropriate retry logic with exponential backoff to handle transient replication lag."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DB-005 Read Replica Lag Causing Stale Reads: ## Context\nError Signature: Read query against a replica returns stale or missing data immediately after a write, with `Seconds_Behind_Master` reported well above zero (commonly 30+ seconds) at the time of the failed read.\nThis occurs when an applicat",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1024",
-    "inference_time_sec": 16.05,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "hite-core-scheduler-1 container",
-      "where": "Docker environment",
-      "when": "2 minutes ago",
-      "who": "",
-      "why": "Replicas are racing for the same host port, causing a bind() error in nginx.",
-      "how": "Pending SOP search"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-002 Healthcheck Failing — Port Already in Use: ## Context\nError Signature: `docker ps` shows the container as `unhealthy`; nginx error log reports `bind() to 0.0.0.0:80 failed (98: Address already in use)`.\nThis occurs when two replicas of the same service attempt to bind the same host port ",
-    "grounded": false
-  },
-  {
-    "ticket_id": "TKT-1025",
-    "inference_time_sec": 14.47,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Redis/Horizon Queue Connection Refused",
-      "where": "production environment, redis-inventory-api.internal",
-      "when": "2026-07-10 09:41:00",
-      "who": "Horizon worker",
-      "why": "The Redis container is accepting TCP connections but being restarted or reset shortly after due to memory eviction policy or unrelated container restarts on the same Docker network.",
-      "how": "Increase Redis memory limit; review and optimize memory usage within the application; investigate for any conflicting services causing the Redis container to be reset."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DB-004 Redis/Horizon Queue Connection Refused: ## Context\nError Signature: Predis\\Connection\\ConnectionException: Connection refused [tcp://redis-<project>.internal:6379], reported by a Horizon worker after repeated supervisor restarts, with `docker logs` showing the Redis container is running b",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1026",
-    "inference_time_sec": 16.92,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Dependency Crash Loop",
-      "where": "docker compose ps shows worker container restarting and db service as healthy",
-      "when": "Worker logs show retry attempts counting up to a fixed maximum before exiting",
-      "who": "Worker container dependent on `db` service healthcheck",
-      "why": "Depends_on healthcheck reports the database container as healthy (port is open) before MySQL has finished InnoDB crash recovery and is ready to accept application connections.",
-      "how": "1. Adjust the depends_on healthcheck to use a more reliable method for checking DB readiness, such as querying a specific SQL endpoint that confirms InnoDB recovery is complete.\n2. Increase the wait time or retry attempts in the worker container's startup script to allow for a longer period before failing."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-004 Dependency Crash Loop (depends_on Race): ## Context\nError Signature: a worker container repeatedly restarts with \"No route to host\" or SQLSTATE 2002 while the `db` service shows as `healthy` in `docker compose ps`; worker logs show retry attempts counting up to a fixed maximum before exi",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1027",
-    "inference_time_sec": 15.01,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Read Replica Lag Causing Stale Reads",
-      "where": "production environment, replica db-prod-01.internal",
-      "when": "2026-07-10 09:00:00 UTC",
-      "who": "user dwi.k through Livewire component on feature/checkout-flow branch",
-      "why": "Application attempted to read from a replica immediately after writing to the primary, leading to stale data due to lag in replication (Seconds_Behind_Master reported as 47).",
-      "how": "Implement query routing logic to ensure reads are directed to the primary database during critical write operations. Additionally, monitor and address any underlying issues causing high replication lag."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DB-005 Read Replica Lag Causing Stale Reads: ## Context\nError Signature: Read query against a replica returns stale or missing data immediately after a write, with `Seconds_Behind_Master` reported well above zero (commonly 30+ seconds) at the time of the failed read.\nThis occurs when an applicat",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1028",
-    "inference_time_sec": 17.58,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Permission denied error when trying to write to a log file",
-      "where": "/var/www/html/storage/logs/laravel.log in the billing-service-worker-1 container",
-      "when": "2026-07-10 at 12:53:00 UTC",
-      "who": "billing-service-worker-1 container running as www-data (uid=1000)",
-      "why": "Bind-mounted volume recreated on new host with default root ownership, while the container's runtime user has no write access.",
-      "how": "Change the ownership of the log directory inside the container to match the runtime user by adding a step in the Dockerfile or using a script within the container to set permissions. For example: chown -R www-data:www-data /var/www/html/storage/logs"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-003 Volume Mount Permission Denied: ## Context\nError Signature: \"failed to write to /var/www/html/storage/logs/laravel.log: Permission denied\"; `ls -la` inside the container shows the log directory owned by `root` while the container process runs as a non-root user.\nThis occurs when a bind-m",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1029",
-    "inference_time_sec": 19.46,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "MySQL Connection Timeout",
-      "where": "db-prod-03.internal",
-      "when": "2026-07-10 10:14:00",
-      "who": "app_user",
-      "why": "The connection to the MySQL database timed out due to high load and insufficient timeout settings.",
-      "how": "['Confirm the DB host is reachable and check current connection load using `mysqladmin -h db-prod-03.internal -u app_user -p ping` and `mysqladmin -h db-prod-03.internal -u app_user -p status | grep Threads_connected`.', \"Raise the PDO connection timeout in config/database.php by setting `'options' => [PDO::ATTR_TIMEOUT => 10]`.\", 'Clear and rebuild the config cache so the change takes effect with `php artisan config:clear` and `php artisan config:cache --env=production`.']"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DB-001 MySQL Connection Timeout (SQLSTATE 2002): ## Remediation\n```bash\n# 1. Confirm the DB host is reachable and check current connection load\nmysqladmin -h db-prod-03.internal -u app_user -p ping\nmysqladmin -h db-prod-03.internal -u app_user -p status | grep Threads_connected\n\n# 2. Raise the P",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1030",
-    "inference_time_sec": 17.55,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "SQL connection timeout",
-      "where": "production database server (db-prod-01.internal)",
-      "when": "2026-07-10 08:15:00",
-      "who": "",
-      "why": "Possible network issue or high load on the database server",
-      "how": "Pending SOP search"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DB-001 MySQL Connection Timeout (SQLSTATE 2002): DB-001: MySQL Connection Timeout (SQLSTATE 2002)\nSOP_ID: SOP-DB-001\nCategory: Database\nConfidence_Tier: A\nTags: laravel, mysql, database, timeout",
-    "grounded": false
-  },
-  {
-    "ticket_id": "TKT-1031",
-    "inference_time_sec": 13.75,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "MySQL Too Many Connections Error",
-      "where": "db-prod-03.internal",
-      "when": "2026-07-10 08:21:00",
-      "who": "developer running `php artisan queue:work --queue=default` locally",
-      "why": "The number of concurrent client connections (application servers, queue workers) exceeds the database's configured max_connections limit.",
-      "how": "Increase the MySQL 'max_connections' configuration to a value greater than the current count of connected threads. Restart the MySQL service after changing the configuration."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DB-002 MySQL Too Many Connections (SQLSTATE 1040): ## Context\nError Signature: SQLSTATE[HY000] [1040] Too many connections, typically thrown from a queue worker or artisan command, with `Threads_connected` at or above `max_connections` in the MySQL status output.\nThis happens when the number of ",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1032",
-    "inference_time_sec": 12.18,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Git submodule update conflict",
-      "where": "Repository with submodule 'packages/inventory-api-shared-ui'",
-      "when": "When executing `git submodule update --init --recursive` after making local changes in the submodule",
-      "who": "User performing submodule update",
-      "why": "Local changes exist inside a submodule that would be overwritten during checkout, preventing Git from discarding them silently",
-      "how": "Commit or stash your local changes in the submodule before running `git submodule update --init --recursive`"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-GIT-005 Submodule Checkout Conflict: ## Context\nError Signature: `git submodule update --init --recursive` fails with \"Your local changes to the following files would be overwritten by checkout,\" referencing files inside a submodule path.\nThis occurs when uncommitted local changes exist inside a",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1033",
-    "inference_time_sec": 17.09,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Container OOMKilled",
-      "where": "docker-compose.yml",
-      "when": "2026-07-10 13:23:00",
-      "who": "spk-saw-umkm-app-1",
-      "why": "The container's memory limit is smaller than the peak memory footprint of the workload.",
-      "how": "{'Step 1': \"Confirm the OOM kill in the kernel log using `dmesg | grep -i 'out of memory' | tail -5`\", 'Step 2': \"Raise the container's memory limit in docker-compose.yml by changing `mem_limit: 1024m` to `mem_limit: 2048m`\"}"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-001 Container OOMKilled (Exit Code 137): ## Diagnosis\nThe container's configured memory limit is smaller than the peak memory footprint of the workload it is running — frequently a CSV/report export that loads an entire dataset into memory rather than processing it in chunks.\n\n## Remediation",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1034",
-    "inference_time_sec": 17.02,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "MySQL Connection Timeout",
-      "where": "production environment (db-staging-01.internal)",
-      "when": "[2026-07-10 09:14:00]",
-      "who": "presensi-akademik application (Laravel framework)",
-      "why": "The connection pool was exhausted, with only 2 idle connections available out of 100. The wait queue had 14 connections waiting for a slot, leading to the timeout.",
-      "how": "Increase the number of connections in the connection pool or investigate why so many connections are being made simultaneously."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DB-001 MySQL Connection Timeout (SQLSTATE 2002): DB-001: MySQL Connection Timeout (SQLSTATE 2002)\nSOP_ID: SOP-DB-001\nCategory: Database\nConfidence_Tier: A\nTags: laravel, mysql, database, timeout",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1035",
-    "inference_time_sec": 19.85,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Connection refused error",
-      "where": "tcp://redis-spk-saw-umkm.internal:6379",
-      "when": "[2026-07-10 08:47:00]",
-      "who": "horizon worker for queue=default",
-      "why": "Redis server is accepting connections but dropping client connections every ~10s, causing connection refused errors in the horizon worker.",
-      "how": "Pending SOP search"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DB-004 Redis/Horizon Queue Connection Refused: ## Context\nError Signature: Predis\\Connection\\ConnectionException: Connection refused [tcp://redis-<project>.internal:6379], reported by a Horizon worker after repeated supervisor restarts, with `docker logs` showing the Redis container is running b",
-    "grounded": false
-  },
-  {
-    "ticket_id": "TKT-1036",
-    "inference_time_sec": 16.91,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Git push rejected due to non-fast-forward",
-      "where": "git.internal:billing-service.git",
-      "when": "N/A",
-      "who": "rangga.a",
-      "why": "Rangga checked out a specific commit to test a hotfix and forgot to create a branch before making changes, leaving commits unreachable from any branch.",
-      "how": "[{'step': 'Create a new branch from the current detached HEAD state.', 'command': 'git checkout -b feature/checkout-flow'}, {'step': 'Add your changes to the staging area.', 'command': 'git add .'}, {'step': 'Commit the changes to the new branch.', 'command': \"git commit -m 'Your commit message'\"}, {'step': 'Push the new branch to the remote repository.', 'command': 'git push origin feature/checkout-flow'}]"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-GIT-003 Detached HEAD / Non-Fast-Forward Push Rejection: ## Context\nError Signature: `git push` is rejected with \"! [rejected] HEAD -> <branch> (non-fast-forward),\" and `git status` reports \"HEAD detached at <commit>,\" indicating commits were made without an active branch reference.\nThis occurs ",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1037",
-    "inference_time_sec": 13.17,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Image Build Failure",
-      "where": "CI Pipeline (docker build)",
-      "when": "Feature Branch `hotfix/auth-guard`",
-      "who": "Developer initiating feature branch",
-      "why": "Composer version mismatch between lock file and build image, causing class-not-found error in `vendor/composer/installed.php`.",
-      "how": "['Update the Composer version in the build image to match that used to generate the `composer.lock` file.', 'Regenerate the `composer.lock` file using the updated Composer version.']"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-005 Image Build Failure — Composer Version Mismatch: ## Context\nError Signature: `docker build` fails during `composer install --no-dev --optimize-autoloader` with a class-not-found error referencing `vendor/composer/installed.php`, blocking the CI pipeline for a feature branch.\nThis occurs ",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1038",
-    "inference_time_sec": 16.69,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Container OOMKilled (Exit Code 137)",
-      "where": "spk-saw-umkm-app-1",
-      "when": "[2026-07-10 14:55:00]",
-      "who": "SOP-DOC-001",
-      "why": "The container's configured memory limit is smaller than the peak memory footprint of the workload, leading to an out-of-memory error.",
-      "how": "[\"Confirm the OOM kill in the kernel log with the command: `dmesg | grep -i 'out of memory' | tail -5`\", \"Raise the container's memory limit in docker-compose.yml by updating `mem_limit` from 1024m to 2048m\"]"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-001 Container OOMKilled (Exit Code 137): ## Diagnosis\nThe container's configured memory limit is smaller than the peak memory footprint of the workload it is running — frequently a CSV/report export that loads an entire dataset into memory rather than processing it in chunks.\n\n## Remediation",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1039",
-    "inference_time_sec": 12.5,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Lockfile conflict in composer.lock",
-      "where": "resources/views/livewire/dashboard.blade.php",
-      "when": "git pull or git merge",
-      "who": "Teammates running composer update/npm install and pushing lock files",
-      "why": "Two contributors independently updated their dependencies, resulting in slightly different versions being recorded in composer.lock.",
-      "how": "Run 'composer update' to resolve the conflict. The command will update the lock file to reflect a single version of each package, resolving the conflict."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-GIT-004 Lockfile Conflict (composer.lock / package-lock.json): ## Context\nError Signature: `git pull` or `git merge` reports a conflict specifically inside `composer.lock` or `package-lock.json`, with conflict markers surrounding a version-number mismatch for the same package.\nThis occurs when t",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1040",
-    "inference_time_sec": 14.68,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Lockfile conflict in package-lock.json",
-      "where": "GitHub repository, branch with conflicts",
-      "when": "During git rebase operation or merge of origin/main",
-      "who": "Contributors pushing lock files with different dependency resolutions",
-      "why": "Two contributors independently updated dependencies and pushed conflicting lock files. Git cannot automatically resolve the conflict due to version-number mismatches.",
-      "how": "['Identify the conflicting lines in package-lock.json using $ git diff --name-only --diff-filter=U', 'Resolve the conflict manually by editing package-lock.json to include a single, consistent version for each package', 'Stage the resolved file with $ git add <conflicted_files>', 'Continue the rebase process with $ git rebase --continue']"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-GIT-004 Lockfile Conflict (composer.lock / package-lock.json): ## Context\nError Signature: `git pull` or `git merge` reports a conflict specifically inside `composer.lock` or `package-lock.json`, with conflict markers surrounding a version-number mismatch for the same package.\nThis occurs when t",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1041",
-    "inference_time_sec": 13.74,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "composer install --no-dev --optimize-autoloader step fails in docker build",
-      "where": "docker image registry.internal/billing-service:latest",
-      "when": "during the ci pipeline for the develop feature branch",
-      "who": "the automation system running the ci pipeline",
-      "why": "the composer.lock file was generated with a newer Composer version (2.7) than the one in the build image (2.2)",
-      "how": "update the base image to use a more recent version of Composer that supports the lock file format, or regenerate the composer.lock file using the same Composer version as the build image"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-005 Image Build Failure — Composer Version Mismatch: ## Context\nError Signature: `docker build` fails during `composer install --no-dev --optimize-autoloader` with a class-not-found error referencing `vendor/composer/installed.php`, blocking the CI pipeline for a feature branch.\nThis occurs ",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1042",
-    "inference_time_sec": 19.4,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Redis/Horizon Queue Connection Refused",
-      "where": "redis-presensi-akademik.internal",
-      "when": "2026-07-10 10:55:00",
-      "who": "Horizon worker for queue=exports",
-      "why": "The Redis container is accepting TCP connections but restarting or resetting shortly after, often due to a memory eviction policy or an unrelated container restart on the same Docker network.",
-      "how": "[{'step': 'Review and adjust the Redis memory eviction policy', 'description': 'Ensure that the Redis configuration does not lead to frequent evictions. Adjust parameters like maxmemory-policy if necessary.'}, {'step': 'Check for unrelated container restarts', 'description': 'Examine the Docker network for any unrelated container restarts that might be affecting the Redis service.'}, {'step': 'Restart the Redis service', 'description': 'Manually restart the Redis service to see if it resolves the issue. This can help identify if the problem is transient.'}]"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DB-004 Redis/Horizon Queue Connection Refused: ## Context\nError Signature: Predis\\Connection\\ConnectionException: Connection refused [tcp://redis-<project>.internal:6379], reported by a Horizon worker after repeated supervisor restarts, with `docker logs` showing the Redis container is running b",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1043",
-    "inference_time_sec": 3.87,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "git submodule update",
-      "where": "",
-      "when": "",
-      "who": "",
-      "why": "Local changes in a submodule could be overwritten.",
-      "how": "Pending SOP search"
-    },
-    "action_taken": "execute_safe_cli",
-    "result_preview": "Error: execute_safe_cli sandbox not deployed in eval environment (command not run: $ git submodule update --init --recursive\nSubmodule path 'packages/hite-core-shared-ui': checked out 'f4e2a91' \nerror: Your local changes to the following files would be overwritten by checkout:\n  packages/hite-core-s",
-    "grounded": false
-  },
-  {
-    "ticket_id": "TKT-1044",
-    "inference_time_sec": 12.42,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Port conflict on host",
-      "where": "hite-core-worker-1 container",
-      "when": "After a docker compose up --scale change",
-      "who": "System (docker compose scaling)",
-      "why": "Two replicas of the same service attempted to bind the same host port simultaneously",
-      "how": "Restart the affected containers with unique port mappings"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-002 Healthcheck Failing — Port Already in Use: ## Context\nError Signature: `docker ps` shows the container as `unhealthy`; nginx error log reports `bind() to 0.0.0.0:80 failed (98: Address already in use)`.\nThis occurs when two replicas of the same service attempt to bind the same host port ",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1045",
-    "inference_time_sec": 18.14,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Container OOMKilled",
-      "where": "inventory-api-nginx-1",
-      "when": "[2026-07-10 11:41:00]",
-      "who": "Inventory API Nginx Container",
-      "why": "The container's configured memory limit is smaller than the peak memory footprint of the workload it is running, which leads to an out-of-memory condition during a large CSV report export job.",
-      "how": "[\"1. Confirm the OOM kill in the kernel log using `dmesg | grep -i 'out of memory' | tail -5`.\", \"2. Raise the container's memory limit in docker-compose.yml by increasing the mem_limit value from 1024m to 2048m.\"]"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-001 Container OOMKilled (Exit Code 137): ## Diagnosis\nThe container's configured memory limit is smaller than the peak memory footprint of the workload it is running — frequently a CSV/report export that loads an entire dataset into memory rather than processing it in chunks.\n\n## Remediation",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1046",
-    "inference_time_sec": 15.71,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Read Replica Lag Causing Stale Reads",
-      "where": "production replica db-prod-03.internal",
-      "when": "2026-07-10 10:06:00",
-      "who": "nadia.r (user)",
-      "why": "The application attempted to read from a replica immediately after writing to the primary, causing a lag in replication that resulted in stale data being returned.",
-      "how": "Ensure that all write operations are directed to the primary database. For reads, use appropriate query routing to ensure they are performed on replicas only if their data is sufficiently up-to-date (i.e., Seconds_Behind_Master is within an acceptable range). Consider implementing a retry mechanism for read operations on replicas that experience lag."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DB-005 Read Replica Lag Causing Stale Reads: ## Context\nError Signature: Read query against a replica returns stale or missing data immediately after a write, with `Seconds_Behind_Master` reported well above zero (commonly 30+ seconds) at the time of the failed read.\nThis occurs when an applicat",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1047",
-    "inference_time_sec": 16.85,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Rebase conflict in Git",
-      "where": "In the app/Models/User.php file during a rebase operation from origin/main to main branch",
-      "when": "During a git rebase operation on the current commit sequence",
-      "who": "The user performing the git rebase operation",
-      "why": "The conflict arises due to the same logical changes being applied multiple times in different commits, requiring manual resolution for each commit individually.",
-      "how": "[{'step': 'Identify files with conflicts', 'command': 'git status\\ngit diff --name-only --diff-filter=U'}, {'step': 'Resolve conflict markers in the identified file(s)', 'description': 'Edit the conflicted files to resolve the conflict markers.'}, {'step': 'Mark resolved files as added', 'command': 'git add <file>'}, {'step': 'Continue the rebase process', 'command': 'git rebase --continue'}]"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-GIT-002 Rebase Conflict Requiring Manual Resolution: ## Diagnosis\nBecause a rebase replays commits individually, this can surface the same logical conflict repeatedly across several commits in the sequence — each one must be resolved in turn rather than all at once.\n\n## Remediation\n```bash\n# 1. ",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1048",
-    "inference_time_sec": 17.38,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "MySQL Too Many Connections Error",
-      "where": "Shared Staging Database (db-staging-03.internal)",
-      "when": "2026-07-10 09:19:00",
-      "who": "Developer running `php artisan queue:work --queue=exports` locally",
-      "why": "The number of concurrent client connections (including the developer's queue worker) exceeded the MySQL server's configured `max_connections` limit.",
-      "how": "Increase the `max_connections` setting in the MySQL configuration to allow more concurrent connections. Review and optimize database connections in application code to ensure they are properly closed after use."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DB-002 MySQL Too Many Connections (SQLSTATE 1040): ## Context\nError Signature: SQLSTATE[HY000] [1040] Too many connections, typically thrown from a queue worker or artisan command, with `Threads_connected` at or above `max_connections` in the MySQL status output.\nThis happens when the number of ",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1049",
-    "inference_time_sec": 17.02,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Lock wait timeout exceeded during migration",
-      "where": "db-prod-02.internal",
-      "when": "[2026-07-10 09:24:00]",
-      "who": "staging environment, PHP artisan migrate --force command run by unknown user",
-      "why": "Another transaction (long-running report query) is holding a lock on the `event_registrations` table, preventing the migration from acquiring its required lock.",
-      "how": "1. Identify and terminate the long-running report query that is holding the lock.\n2. Retry the migration command (`php artisan migrate --force`).\n3. If the issue persists, consider optimizing the report query or migrating during off-peak hours."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DB-003 Migration Lock Wait Timeout (Error 1205): ## Context\nError Signature: SQLSTATE[HY000]: General error: 1205 Lock wait timeout exceeded, raised during an `ALTER TABLE` statement run via `php artisan migrate --force`, with the migration appearing to hang for several minutes before failing.\nT",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1050",
-    "inference_time_sec": 15.11,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "MySQL Too Many Connections",
-      "where": "db-staging-03.internal",
-      "when": "2026-07-10 11:35:00",
-      "who": "developer running `php artisan queue:work --queue=default` locally",
-      "why": "The number of concurrent client connections exceeded the MySQL database's configured `max_connections` limit, resulting in an error when trying to insert into the `invoices` table.",
-      "how": "Increase the `max_connections` setting in the MySQL configuration file or optimize the code to reduce the number of concurrent connections."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DB-002 MySQL Too Many Connections (SQLSTATE 1040): ## Context\nError Signature: SQLSTATE[HY000] [1040] Too many connections, typically thrown from a queue worker or artisan command, with `Threads_connected` at or above `max_connections` in the MySQL status output.\nThis happens when the number of ",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1051",
-    "inference_time_sec": 19.15,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Docker container OOMKilled (Exit Code 137)",
-      "where": "/usr/share/ollama",
-      "when": "Jul 15 13:12:36 DEBIAN13",
-      "who": "ferdi",
-      "why": "The PHP-FPM process inside the Docker container exceeded its memory limit, causing the Linux kernel's OOM killer to terminate it.",
-      "how": "[{'step': 'Increase the memory limit for the Docker container', 'command': 'docker update --memory \"<new-memory-limit>\" <container-id>'}, {'step': 'Optimize PHP-FPM configuration to reduce memory usage during export/import jobs', 'configuration_change': 'Adjust settings like `pm.max_children`, `request_terminate_timeout`, and `php_admin_value[opcache.memory_consumption]` in the PHP-FPM config file'}, {'step': 'Monitor container memory usage regularly', 'command': 'docker stats <container-id>'}]"
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DOC-001 Container OOMKilled (Exit Code 137): DOC-001: Container OOMKilled (Exit Code 137)\nSOP_ID: SOP-DOC-001\nCategory: Docker\nConfidence_Tier: A\nTags: docker, memory, oom\n\n## Context\nError Signature: `docker inspect` reports `ExitCode 137` and `OOMKilled: true`; kernel log shows \"Out of memory:",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1052",
-    "inference_time_sec": 13.0,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Failed Image Pull (Registry Authentication Failure)",
-      "where": "Kubernetes Cluster",
-      "when": "57m ago",
-      "who": "Pod api-gateway-5777bc44c-5mbks",
-      "why": "The pod's image pull secret is invalid, expired, insufficiently scoped, or the image visibility has changed to private without an updated pull secret.",
-      "how": "Update the pod's image pull secret with a valid, non-expired, and appropriately scoped credential that includes access to the ghcr.io/merpatidove/qti-api-gateway:latest image."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-K8S-001 Image Pull Forbidden (Registry Authentication Failure): ## Context\nError Signature: a Kubernetes Warning event with reason `Failed` reporting \"Failed to pull image <registry>/<image>:<tag>: 403 Forbidden\" for a pod, blocking the container from starting.\nThis occurs when the container reg",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1053",
-    "inference_time_sec": 14.39,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Liveness Probe Failing",
-      "where": "pod/prometheus-kube-state-metrics-57c8d67ff4-sgc8v",
-      "when": "31 minutes ago",
-      "who": "monitoring system",
-      "why": "The container's health endpoint responded but reported itself as not ready to serve traffic, likely due to initialization issues, overload, or a temporary unavailability of a dependency.",
-      "how": "Restart the pod to reset the liveness probe status. If the issue persists, investigate and address any underlying initialization problems or dependency issues."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-K8S-002 Liveness Probe Failing (HTTP 503): ## Context\nError Signature: a Kubernetes Warning event with reason `Unhealthy` reporting \"Liveness probe failed: HTTP probe failed with statuscode: 503\" for a pod, which restarts the container repeatedly once the failure threshold is exceeded.\nThis occu",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1054",
-    "inference_time_sec": 13.34,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Redis/Horizon Queue Connection Refused",
-      "where": "tcp://redis-<project>.internal:6379",
-      "when": "Jul 14 17:18:48",
-      "who": "ferdi",
-      "why": "The Redis container is accepting the initial TCP handshake but is being restarted or reset shortly after, often due to a memory eviction policy or an unrelated container restart on the same Docker network.",
-      "how": "Check the Redis memory usage and eviction policy settings. Ensure that no unrelated containers are causing restarts on the same Docker network."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-DB-004 Redis/Horizon Queue Connection Refused: ## Context\nError Signature: Predis\\Connection\\ConnectionException: Connection refused [tcp://redis-<project>.internal:6379], reported by a Horizon worker after repeated supervisor restarts, with `docker logs` showing the Redis container is running b",
-    "grounded": true
-  },
-  {
-    "ticket_id": "TKT-1055",
-    "inference_time_sec": 12.44,
-    "status_code": 200,
-    "5w1h_output": {
-      "what": "Image pull forbidden due to registry authentication failure",
-      "where": "Kubernetes cluster, specifically in the application/qti-api-gateway namespace",
-      "when": "Approximately 8 minutes ago",
-      "who": "argocd system",
-      "why": "The Kubernetes service account attempting to pull images from the registry does not have valid authentication credentials. This is causing the image pull operation to fail.",
-      "how": "Verify that the correct secrets are present in the namespace for the service account and that they contain valid registry authentication tokens. If necessary, update or recreate these secrets with proper credentials."
-    },
-    "action_taken": "search_sop",
-    "result_preview": "SOP-K8S-001 Image Pull Forbidden (Registry Authentication Failure): K8S-001: Image Pull Forbidden (Registry Authentication Failure)\nSOP_ID: SOP-K8S-001\nCategory: Kubernetes\nConfidence_Tier: B\nTags: kubernetes, ci-cd, gitops, registry",
-    "grounded": true
+    "result_preview": "{\"proposed_fix\": \"SOP-INF-008 Argo CD Redis Unreachable: INF-008: Argo CD Redis Unreachable\\nSOP_ID: SOP-INF-008\\nCategory: Infrastructure\\nConfidence_Tier: B\\nTags: argocd, redis, gitops, caching\\n\\n",
+    "grounded": false,
+    "inference_time_sec": 18.96
   }
 ]

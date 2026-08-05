@@ -29,7 +29,7 @@ Every SOP entry in this manual follows the same fixed structure, in this exact o
 Metadata keys used throughout this manual:
 
 - **SOP_ID** — unique identifier, referenced by the ticket-to-SOP answer key.
-- **Category** — one of `Database`, `Docker`, `Git`, `Kubernetes`.
+- **Category** — one of `Database`, `Docker`, `Git`, `Kubernetes`, `Infrastructure`.
 - **Confidence_Tier** — the tier HITE should assign per **SOP-05** if it retrieves this document with high similarity: `A` (safe to auto-deliver), `B` (deliver with "Review Recommended"), or `C` (requires human judgment before any fix is proposed).
 - **Tags** — comma-separated keywords matching the `project_tags` convention used in ticket intake (SOP-01).
 
@@ -51,7 +51,7 @@ Metadata keys used throughout this manual:
 | SOP-DB-004 | Redis/Horizon Queue Connection Refused | Database | A |
 | SOP-DB-005 | Read Replica Lag Causing Stale Reads | Database | B |
 | SOP-DOC-001 | Container OOMKilled (Exit Code 137) | Docker | A |
-| SOP-DOC-002 | Healthcheck Failing — Port Already in Use | Docker | A |
+| SOP-DOC-002 | Container Fails to Start / Healthcheck Failing — Port Already in Use | Docker | A |
 | SOP-DOC-003 | Volume Mount Permission Denied | Docker | A |
 | SOP-DOC-004 | Dependency Crash Loop (depends_on Race) | Docker | B |
 | SOP-DOC-005 | Image Build Failure — Composer Version Mismatch | Docker | A |
@@ -63,6 +63,12 @@ Metadata keys used throughout this manual:
 | SOP-GIT-006 | CRLF/LF Line Ending Conflict | Git | A |
 | SOP-K8S-001 | Image Pull Forbidden (Registry Authentication Failure) | Kubernetes | B |
 | SOP-K8S-002 | Liveness Probe Failing (HTTP 503) | Kubernetes | B |
+| SOP-INF-003 | Ollama Unreachable over VPN/Overlay (WireGuard / Tailscale) | Infrastructure | A |
+| SOP-INF-004 | Loki Datasource Unreachable (DNS no such host / i/o timeout) | Infrastructure | B |
+| SOP-INF-005 | VolumeSnapshot CRDs Missing (csi-snapshotter Reflector Failing) | Infrastructure | B |
+| SOP-INF-006 | Worker Lost Route to Control Plane (k0s API Server Unreachable) | Infrastructure | B |
+| SOP-INF-007 | etcd Request Timeout During Leader Election | Infrastructure | B |
+| SOP-INF-008 | Argo CD Components Failing to Reach Redis (Unreachable / Timeout) | Infrastructure | B |
 
 ## 5. Ticket Types Outside This Manual's Scope
 
@@ -265,15 +271,15 @@ Longer-term note: if the same job repeatedly approaches the new limit, the under
 
 ---
 
-# SOP-DOC-002: Healthcheck Failing — Port Already in Use
+# SOP-DOC-002: Container Fails to Start / Healthcheck Failing — Port Already in Use
 SOP_ID: SOP-DOC-002
 Category: Docker
 Confidence_Tier: A
-Tags: docker, nginx, healthcheck, networking
+Tags: docker, nginx, healthcheck, networking, fails-to-start
 
 ## Context
-Error Signature: `docker ps` shows the container as `unhealthy`; nginx error log reports `bind() to 0.0.0.0:80 failed (98: Address already in use)`.
-This occurs when two replicas of the same service attempt to bind the same host port simultaneously, typically after a `docker compose up --scale` change that was not matched by an updated port mapping.
+Error Signature: `docker ps` shows the container as `unhealthy` or restarting; nginx error log reports `bind() to 0.0.0.0:80 failed (98: Address already in use)`.
+This occurs when two replicas of the same service attempt to bind the same host port simultaneously. This causes the container to fail to start or crash during initialization, typically after a `docker compose up --scale` change that was not matched by an updated port mapping.
 
 ## Diagnosis
 The container process itself is fine — nginx simply cannot start because another process (an orphaned replica from a previous scale operation) is already holding the port.
@@ -648,26 +654,38 @@ Escalation note: since the right fix depends on whether the 503 reflects a real 
 
 ---
 
-# SOP-INF-003: Ollama Unreachable over WireGuard (Connection Refused)
+# Category: Infrastructure
+
+# SOP-INF-003: Ollama Unreachable over VPN/Overlay (WireGuard / Tailscale)
 SOP_ID: SOP-INF-003
 Category: Infrastructure
 Confidence_Tier: A
-Tags: ollama, wireguard, llm, connection-refused
+Tags: ollama, wireguard, tailscale, mesh, llm, connection-refused
 
 ## Context
-Error Signature: `curl http://10.10.10.2:11434/api/tags` -> `curl: (7) Failed to connect to 10.10.10.2 port 11434 ... Connection refused`; SSH local-forward spams `channel 3: open failed: connect failed: Connection refused`.
+Error Signature: `curl [http://10.10.10.2:11434/api/tags](http://10.10.10.2:11434/api/tags)` -> `curl: (7) Failed to connect to 10.10.10.2 port 11434 ... Connection refused`; SSH local-forward spams `channel 3: open failed: connect failed: Connection refused`.
 
-The Mac Mini hosts Ollama (at incident time bound to the WireGuard interface, OLLAMA_HOST=10.10.10.2:11434). "Connection refused" (not timeout) means the box and the path are UP but nothing is listening on 11434 — the Ollama service itself is down.
+The Mac Mini hosts Ollama (at incident time bound to the VPN/overlay mesh interface, such as WireGuard or Tailscale, e.g., OLLAMA_HOST=10.10.10.2:11434). "Connection refused" (not timeout) means the box and the network path are UP but nothing is listening on 11434 — the Ollama service itself is down.
 
 ## Diagnosis
 1. `ping -c 3 10.10.10.2` — 0% loss = Mac Mini reachable (not off).
-2. `sudo wg show wg0` — fresh handshake = WireGuard healthy.
+2. `sudo wg show wg0` (or `tailscale status`) — fresh handshake = VPN/Mesh healthy.
 3. Both pass but 11434 refuses = Ollama not running / not bound.
 
 ## Remediation
-1. On the Mac Mini: `OLLAMA_HOST=10.10.10.2:11434 ollama serve`.
-2. Verify: `curl http://10.10.10.2:11434/api/tags` (expect the model list).
-3. Make durable: Ollama LaunchDaemon with KeepAlive (WireGuard's com.wireguard.wg0.plist auto-starts; Ollama may not).
+```bash
+# 1. On the Mac Mini, bind and start the service
+OLLAMA_HOST=10.10.10.2:11434 ollama serve
+
+# 2. Verify connection
+curl http://10.10.10.2:11434/api/tags
+
+# 3. Make durable: Ollama LaunchDaemon with KeepAlive 
+# (VPNs auto-start, but Ollama may need a service file configuration)
+```
+Verification: `curl [http://10.10.10.2:11434/api/tags](http://10.10.10.2:11434/api/tags)` returns the model list successfully without a connection refusal error.
+
+---
 
 # SOP-INF-004: Loki Datasource Unreachable (DNS no such host / i/o timeout)
 SOP_ID: SOP-INF-004
@@ -686,9 +704,18 @@ Two modes: "no such host" = the `loki` Service is not resolvable (missing/rename
 3. `kubectl get endpoints -n monitoring loki` — empty = no ready pod.
 
 ## Remediation
-1. Pod down/CrashLoop: `kubectl rollout restart statefulset/loki -n monitoring`.
-2. Service missing: restore via Argo CD (Loki is Argo-managed; force sync).
-3. Verify via port-forward: `curl -G http://localhost:3100/loki/api/v1/query_range --data-urlencode 'query={namespace="monitoring"}'`.
+```bash
+# 1. Pod down/CrashLoop:
+kubectl rollout restart statefulset/loki -n monitoring
+
+# 2. Service missing: restore via Argo CD (Loki is Argo-managed; force sync)
+
+# 3. Verify via port-forward:
+curl -G http://localhost:3100/loki/api/v1/query_range --data-urlencode 'query={namespace="monitoring"}'
+```
+Verification: Grafana datasource test succeeds and Loki returns log query responses without timeouts.
+
+---
 
 # SOP-INF-005: VolumeSnapshot CRDs Missing (csi-snapshotter Reflector Failing)
 SOP_ID: SOP-INF-005
@@ -706,22 +733,31 @@ The external-snapshotter v8 sidecar tries to list/watch the VolumeSnapshot resou
 2. `kubectl logs -n kube-system <csi-nfs-controller-pod> -c csi-snapshotter --tail=20` — confirms the repeating reflector errors.
 
 ## Remediation
-1. If snapshots are needed, install the CRDs (air-gapped: download the manifests on an internet machine, then apply): `kubectl apply -f snapshot.storage.k8s.io_volumesnapshotclasses.yaml` — and the same for `volumesnapshots` and `volumesnapshotcontents`.
-2. If NFS snapshots are not needed, remove the sidecar instead: `kubectl -n kube-system edit deployment csi-nfs-controller` and delete the `csi-snapshotter` container block.
-3. Verify: the reflector errors stop, and `kubectl get volumesnapshotclasses` returns a valid list if the CRDs were installed.
+```bash
+# 1. If snapshots are needed, install the CRDs (air-gapped: download manifests first, then apply):
+kubectl apply -f snapshot.storage.k8s.io_volumesnapshotclasses.yaml
+# (and the same for volumesnapshots and volumesnapshotcontents)
+
+# 2. If NFS snapshots are not needed, remove the sidecar instead:
+kubectl -n kube-system edit deployment csi-nfs-controller
+# delete the csi-snapshotter container block
+
+# 3. Verify: reflector errors stop in logs
+```
+Verification: reflector errors stop repeating in the `csi-snapshotter` logs, and `kubectl get volumesnapshotclasses` succeeds if CRDs were applied.
 
 ---
 
-# SOP-INF-006: Worker Lost Route to Control Plane (API Server Unreachable)
+# SOP-INF-006: Worker Lost Route to Control Plane (k0s API Server Unreachable)
 SOP_ID: SOP-INF-006
 Category: Infrastructure
 Confidence_Tier: B
-Tags: kubernetes, networking, kube-proxy, control-plane, wireguard
+Tags: kubernetes, networking, kube-proxy, control-plane, k0s, api-server
 
 ## Context
-Error Signature: `kube-proxy reflector.go:227 "Failed to watch" err="failed to list *v1.EndpointSlice / *v1.ServiceCIDR / *v1.Node: Get \"https://10.20.20.201:6443/...\": dial tcp 10.20.20.201:6443: connect: no route to host"`, repeated across multiple informers from a single worker node.
+Error Signature: `kube-proxy reflector.go:227 "Failed to watch" err="failed to list *v1.EndpointSlice / *v1.ServiceCIDR / *v1.Node: Get \"[https://10.20.20.201:6443/](https://10.20.20.201:6443/)...\": dial tcp 10.20.20.201:6443: connect: no route to host"`, repeated across multiple informers from a single worker node.
 
-Two modes: "no route to host" = the worker's network path to the controller is broken (VPN/tunnel down, dropped route, or firewall blocking 10.20.20.0/24); "connection refused" = the path is fine but the API-server process itself is down. Compare with the other worker — if only one node fails, the problem is node-local.
+Two modes: "no route to host" = the worker's network path to the k0s API server / control plane is broken (VPN/tunnel down, dropped route, or firewall blocking 10.20.20.0/24); "connection refused" = the path is fine but the k0s API server process itself is down. Compare with the other worker — if only one node fails, the problem is node-local.
 
 ## Diagnosis
 1. `ip route get 10.20.20.201` + `ping -c 3 10.20.20.201` — confirm the route is missing on the affected worker.
@@ -729,9 +765,19 @@ Two modes: "no route to host" = the worker's network path to the controller is b
 3. `kubectl get nodes` — confirm only the one worker is affected.
 
 ## Remediation
-1. Tunnel down: `sudo systemctl restart wg-quick@wg0` (or restart the relevant transport service).
-2. Firewall blocking: `sudo iptables -L -n | grep 10.20.20` — re-allow the 10.20.20.0/24 subnet (SOP-06 air-gap).
-3. Verify via: `kubectl get nodes` shows the worker `Ready` again and the kube-proxy reflector errors stop.
+```bash
+# 1. If Tunnel is down, restart transport service: 
+sudo systemctl restart wg-quick@wg0 
+
+# 2. If Firewall is blocking: 
+sudo iptables -L -n | grep 10.20.20 
+# re-allow the 10.20.20.0/24 subnet (SOP-06 air-gap).
+
+# 3. Verify via: 
+kubectl get nodes 
+# Shows the worker Ready again and the kube-proxy reflector errors stop.
+```
+Verification: `kubectl get nodes` shows the worker node in `Ready` status and `kube-proxy` reflector errors cease.
 
 ---
 
@@ -752,22 +798,30 @@ This indicates transient etcd latency or controller-side overload, not a crash �
 3. `iostat -x 1 5` + `uptime` — check controller disk I/O latency and load.
 
 ## Remediation
-1. Transient / self-resolved: record the window and take no action.
-2. High etcd fragmentation: `ETCDCTL_API=3 etcdctl defrag --cluster` — only during a maintenance window.
-3. Verify via: `etcdctl endpoint health` reporting healthy with low latency and no repeated `etcdserver: request timed out` in the controller logs.
+```bash
+# 1. Transient / self-resolved: record the window and take no action.
+
+# 2. High etcd fragmentation:
+ETCDCTL_API=3 etcdctl defrag --cluster
+# (execute only during a scheduled maintenance window)
+
+# 3. Verify via:
+ETCDCTL_API=3 etcdctl endpoint health --cluster
+```
+Verification: `etcdctl endpoint health` reports healthy status across all nodes with minimal latency.
 
 ---
 
-# SOP-INF-008: Argo CD Redis Unreachable
+# SOP-INF-008: Argo CD Components Failing to Reach Redis (Unreachable / Timeout)
 SOP_ID: SOP-INF-008
 Category: Infrastructure
 Confidence_Tier: B
-Tags: argocd, redis, gitops, caching
+Tags: argocd, redis, gitops, caching, timeout
 
 ## Context
 Error Signature: Argo CD components (repo-server, application-controller, server) log `dial tcp 10.99.87.5:6379: i/o timeout` — `redis: connection pool: failed to dial after N attempts`, with symptoms like `Failed to save cluster info`, `Failed to cache app resources`, `manifest cache error`, and `failed to list refs`.
 
-Argo CD's caching layer (`argocd-redis` at 10.99.87.5:6379) is unreachable, so the components cannot cache manifests, git refs, or app resources — degrading reconciliation. Every component failing to reach the same ClusterIP points to the redis pod or its Service/Endpoints, not to individual components.
+Argo CD's caching layer (`argocd-redis` at 10.99.87.5:6379) is unreachable, so Argo CD components are failing to reach Redis to cache manifests, git refs, or app resources — degrading reconciliation. Every component failing to reach the same ClusterIP points to the redis pod or its Service/Endpoints, not to individual components.
 
 ## Diagnosis
 1. `kubectl -n argocd get pods -l app.kubernetes.io/name=argocd-redis` — pod Running/Pending/CrashLoop?
@@ -775,9 +829,21 @@ Argo CD's caching layer (`argocd-redis` at 10.99.87.5:6379) is unreachable, so t
 3. `kubectl -n argocd logs -l app.kubernetes.io/name=argocd-redis --tail=100` — crash/eviction reason.
 
 ## Remediation
-1. Pod down/CrashLoop: `kubectl -n argocd rollout restart deployment argocd-redis` (or `kubectl -n argocd delete pod argocd-redis-0` for a StatefulSet).
-2. Broken Service/selector: restore via Argo CD (force sync), since `argocd-redis` is GitOps-managed.
-3. Verify via: `kubectl -n argocd get endpoints argocd-redis` showing a ready address and the `dial tcp 10.99.87.5:6379` timeouts stopping.
+```bash
+# 1. Pod down/CrashLoop: 
+kubectl -n argocd rollout restart deployment argocd-redis 
+# (or `kubectl -n argocd delete pod argocd-redis-0` for a StatefulSet).
+
+# 2. Broken Service/selector: 
+# restore via Argo CD (force sync), since argocd-redis is GitOps-managed.
+
+# 3. Verify via: 
+kubectl -n argocd get endpoints argocd-redis 
+# showing a ready address and the dial tcp timeouts stopping.
+```
+Verification: `kubectl -n argocd get endpoints argocd-redis` shows a valid ready pod address, and Redis connection timeout logs disappear from Argo CD components.
+
+---
 
 ## Appendix: Reference Parser (Python)
 

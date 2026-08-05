@@ -1,17 +1,6 @@
-"""HITE 5W1H evaluation harness (client — does NOT start a server).
-
-POSTs every ticket in the dataset to the agent's /process-ticket and writes
-evaluation_results.json for grade_result.py to score.
-
-Dataset switch: set DATASET to grade a different set, e.g.
-    $env:DATASET = "..\data-pipeline\real_tickets.json"
-Unset it to go back to the synthetic golden set.
-"""
-
 import json
 import os
 import time
-
 import requests
 
 AGENT_URL = os.environ.get("AGENT_URL", "http://127.0.0.1:8000")
@@ -23,21 +12,17 @@ OUTPUT_PATH = os.path.join(SCRIPT_DIR, "evaluation_results.json")
 
 PLACEHOLDER_HOW = "Pending SOP search"
 
-
 def load_tickets(path):
     with open(path, encoding="utf-8") as f:
         data = json.load(f)
 
-    # Shape 1: flat array (real_tickets.json)
     if isinstance(data, list):
         return data
 
     if isinstance(data, dict):
-        # Shape 2: object wrapping a list of tickets, e.g. {"tickets": [...]}
         for v in data.values():
             if isinstance(v, list) and v and all(isinstance(t, dict) for t in v):
                 return v
-        # Shape 3: object keyed by ticket id, values are ticket dicts
         tickets = [
             {**v, "ticket_id": v.get("ticket_id", k)}
             for k, v in data.items()
@@ -52,9 +37,7 @@ def load_tickets(path):
         "(real_tickets.json) or the wrapped form of golden_datasets.json."
     )
 
-
 def ticket_text(t):
-    # tolerate the field-name variants seen across datasets
     return (
         t.get("raw_text")
         or t.get("ticket_content")
@@ -63,11 +46,9 @@ def ticket_text(t):
         or ""
     )
 
-
 def is_grounded(how):
     how = (how or "").strip()
     return bool(how) and PLACEHOLDER_HOW.lower() not in how.lower()
-
 
 def process_one(ticket):
     payload = {
@@ -81,7 +62,7 @@ def process_one(ticket):
         r.raise_for_status()
         resp = r.json()
         error = None
-    except Exception as e:  # network / HTTP / JSON failure
+    except Exception as e:
         resp = {}
         error = f"{type(e).__name__}: {e}"
     elapsed = time.time() - start
@@ -93,12 +74,11 @@ def process_one(ticket):
         "ticket_id": payload["ticket_id"],
         "5w1h_output": out5w1h,
         "action_taken": resp.get("action_taken"),
-        "result_preview": (resp.get("result") or "")[:200],
+        "result_preview": (resp.get("result_preview") or "")[:200],
         "grounded": is_grounded(how) and error is None,
         "inference_time_sec": round(elapsed, 2),
         **({"error": error} if error else {}),
     }
-
 
 def main():
     tickets = load_tickets(DATASET_PATH)
@@ -118,7 +98,6 @@ def main():
         json.dump(results, f, ensure_ascii=False, indent=2)
 
     print(f"\nBatch processing complete. {len(results)} tickets -> {OUTPUT_PATH}")
-
 
 if __name__ == "__main__":
     main()
