@@ -67,16 +67,33 @@ fn main() -> Result<()> {
     let mut points = Vec::new();
     for block in &sops {
         let first_line = block.lines().next().unwrap_or("");
-        let (id, title) = match first_line.split_once(": ") {
-            Some((i, t)) => (i.trim().to_string(), t.trim().to_string()),
+        
+        // 1. Extract the new explicit metadata fields
+        let sop_id_meta = field(block, "SOP_ID");
+        let category = field(block, "Category");
+        let tier = field(block, "Confidence_Tier");
+        let tags_str = field(block, "Tags");
+
+        // 2. Fallback parsing from the title line just in case metadata is missing
+        let (fallback_id, title) = match first_line.split_once(": ") {
+            Some((i, t)) => (format!("SOP-{}", i.trim()), t.trim().to_string()),
             None => (first_line.trim().to_string(), "Untitled".to_string()),
         };
-        let category = field(block, "## Category");
-        let tier = field(block, "## Confidence Tier");
+
+        let final_sop_id = if sop_id_meta != "unknown" { sop_id_meta } else { fallback_id };
+        let final_category = if category != "unknown" { category } else { "unknown".to_string() };
+        let final_tier = if tier != "unknown" { tier } else { "unknown".to_string() };
+        
+        // 3. Split tags into a clean array for Qdrant payload filtering
+        let final_tags: Vec<String> = if tags_str != "unknown" {
+            tags_str.split(',').map(|s| s.trim().to_string()).collect()
+        } else {
+            vec![]
+        };
 
         let chunks = chunk_text(block, MAX_CHUNK_CHARS);
         let texts: Vec<String> = chunks.iter()
-            .map(|c| format!("SOP-{} {}: {}", id, title, c)).collect();
+            .map(|c| format!("{} {}: {}", final_sop_id, title, c)).collect();
         let embeddings = model.embed(texts.clone(), None).context("embed failed")?;
 
         for (txt, vec) in texts.iter().zip(embeddings.into_iter()) {
@@ -85,20 +102,21 @@ fn main() -> Result<()> {
                 "vector": vec,
                 "payload": {
                     "text": txt,
-                    "sop_id": format!("SOP-{}", id),
+                    "sop_id": final_sop_id,
                     "title": title,
-                    "category": category,
-                    "tier": tier
+                    "category": final_category,
+                    "tier": final_tier,
+                    "tags": final_tags
                 }
             }));
         }
-        println!("   SOP-{} → {} chunk(s)", id, chunks.len());
+        println!("   {} ({}) [Tier {}] → {} chunk(s)", final_sop_id, final_category, final_tier, chunks.len());
     }
     println!("✅ Built {} points total.", points.len());
 
     let client = reqwest::blocking::Client::new();
 
-    // ---- RESET COLLECTION (prevents duplicate points on re-runs) ----
+    // ---- RESET COLLECTION ----
     println!("🗑️  Resetting collection {} ...", COLLECTION);
     let _ = client.delete(format!("{}/collections/{}", QDRANT_URL, COLLECTION)).send();
     let create_resp = client
@@ -116,7 +134,7 @@ fn main() -> Result<()> {
     }
     println!("✅ Collection recreated (384-dim, Cosine).");
 
-    // ---- UPSERT IN BATCHES (prevents SSH tunnel drops on large payloads) ----
+    // ---- UPSERT IN BATCHES ----
     println!("⬆️  Upserting to {} in batches ...", QDRANT_URL);
     let batch_size = 32;
     for (i, batch) in points.chunks(batch_size).enumerate() {
