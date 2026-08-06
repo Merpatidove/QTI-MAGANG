@@ -9,10 +9,10 @@ from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_
 OLLAMA_URL   = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "hf.co/stefancosma/Qwen2.5-Coder-7B-Instruct-Q4_K_M-GGUF:latest")
 OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "300"))
-TEMP = float(os.getenv("OLLAMA_TEMPERATURE", "0.8"))     
-SEED = os.getenv("OLLAMA_SEED")                          
+TEMP = float(os.getenv("OLLAMA_TEMPERATURE", "0.8"))
+SEED = os.getenv("OLLAMA_SEED")
 QTI_API_URL = os.getenv("QTI_API_URL", "http://100.106.122.68:30082")
-MAX_SYNTH_RETRIES = int(os.getenv("OLLAMA_SYNTH_RETRIES", "2"))   
+MAX_SYNTH_RETRIES = int(os.getenv("OLLAMA_SYNTH_RETRIES", "2"))
 
 PLACEHOLDER_HOW = "Pending SOP search"
 SIX_KEYS = ["Who", "What", "When", "Where", "Why", "How"]
@@ -22,6 +22,16 @@ TOKENS   = Counter("qti_llm_tokens_total", "Tokens by type", ["type"])
 PARSE_ERR= Counter("qti_agent_parse_errors_total", "JSON decode failures")
 OLLAMA_TO= Counter("qti_agent_ollama_timeouts_total", "Ollama request timeouts")
 EMPTY_RET= Counter("qti_agent_empty_retrieval_total", "search_sop with no actionable SOP")
+
+# ---- NEW: business metrics (re-scoped to DS agent §1.4; retrieval-only gateway never produces these) ----
+TIER     = Counter("qti_confidence_tier_total", "Confidence tier per processed ticket", ["tier"])
+ROUTE    = Counter("qti_routing_decision_total", "Routing decision per processed ticket", ["decision"])
+FACT_COV = Histogram("qti_fact_coverage_score",
+                     "Fraction of the six 5W1H facts backed by real content (not placeholder)",
+                     buckets=(0, 0.25, 0.5, 0.75, 1))
+
+# Routing per SOP-05 tier semantics: A = safe to auto-deliver, B = Review Recommended, C = human judgment
+TIER_TO_ROUTE = {"A": "auto_deliver", "B": "review_recommended", "C": "human_escalation"}
 
 app = FastAPI(title="HITE DS agent")
 
@@ -79,15 +89,15 @@ def _parse_json_obj(raw: str) -> dict:
         if isinstance(v, dict): return v
     except json.JSONDecodeError:
         pass
-    
-    m = re.search(r"\{.*\}", text, re.DOTALL)          
+
+    m = re.search(r"\{.*\}", text, re.DOTALL)
     if m:
         try:
             v = json.loads(m.group(0))
             if isinstance(v, dict): return v
         except json.JSONDecodeError:
             pass
-            
+
     raise ValueError("no JSON object in model output")
 
 def synthesize(prompt: str) -> dict:
@@ -105,7 +115,7 @@ def synthesize(prompt: str) -> dict:
                           + "\nReply with ONLY the JSON object — no prose, no code fences.")
     raise last
 
-def _is_err(payload) -> bool:      
+def _is_err(payload) -> bool:
     if not isinstance(payload, dict) or not payload: return True
     fix = str(payload.get("proposed_fix") or "").strip()
     return (not fix) or fix.lower() in {"none", "null", "n/a", "placeholder"}
@@ -156,7 +166,7 @@ def process_ticket(t: Ticket):
         except Exception:
             final = None
 
-    if final is None:                      
+    if final is None:
         final = _norm(analysis)
         for k in SIX_KEYS:
             if not final[k]:
@@ -165,6 +175,12 @@ def process_ticket(t: Ticket):
 
     complete = _complete(final)
     tier = "A" if (complete and grounded) else "B" if complete else "C"
+
+    # ---- NEW: business metrics (§1.4) — one observation per ticket ----
+    TIER.labels(tier=tier).inc()
+    ROUTE.labels(decision=TIER_TO_ROUTE[tier]).inc()
+    FACT_COV.observe(sum(1 for k in SIX_KEYS if final[k] and final[k] != PLACEHOLDER_HOW) / len(SIX_KEYS))
+
     return {"ticket_id": t.ticket_id, "5w1h_output": final, "action_taken": action,
             "result_preview": (json.dumps(sop)[:200] if sop else ""),
             "grounded": grounded, "confidence_tier": tier}
