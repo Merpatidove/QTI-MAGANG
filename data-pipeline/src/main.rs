@@ -34,7 +34,28 @@ fn field(block: &str, key: &str) -> String {
     "unknown".to_string()
 }
 
+fn embed_opts() -> InitOptions {
+    let mut opts = InitOptions::new(EmbeddingModel::AllMiniLML6V2);
+    if let Ok(dir) = std::env::var("EMBED_CACHE_DIR") {
+        opts.cache_dir = std::path::PathBuf::from(dir);
+    }
+    opts
+}
+
 fn main() -> Result<()> {
+    if std::env::args().any(|a| a == "--download-only") {
+        match TextEmbedding::try_new(embed_opts()) {
+            Ok(_) => {
+                println!("✅ embedding model ready in cache");
+                std::process::exit(0);
+            }
+            Err(e) => {
+                eprintln!("warmup failed: {e}");
+                std::process::exit(1);
+            }
+        }
+    }
+
     println!("📖 Reading RAG_Manual.md ...");
     let content = fs::read_to_string("RAG_Manual.md")
         .context("Failed to read RAG_Manual.md — run from inside data-pipeline/")?;
@@ -71,7 +92,7 @@ fn main() -> Result<()> {
     println!("✅ Found {} SOP entries.", sops.len());
 
     println!("🧠 Loading all-MiniLM-L6-v2 (384-dim) ...");
-    let model = TextEmbedding::try_new(InitOptions::new(EmbeddingModel::AllMiniLML6V2))
+    let model = TextEmbedding::try_new(embed_opts())
         .context("Failed to init embedding model")?;
 
     let mut points = Vec::new();

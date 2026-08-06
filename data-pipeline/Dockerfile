@@ -1,0 +1,31 @@
+FROM rust:1-bookworm AS builder
+
+WORKDIR /app
+
+COPY Cargo.toml ./
+RUN mkdir src && echo "fn main() {}" > src/main.rs
+RUN cargo build --release 2>/dev/null || true
+RUN rm -rf src
+
+COPY src/ src/
+RUN touch src/main.rs && cargo build --release
+
+ENV EMBED_CACHE_DIR=/opt/fastembed
+RUN /app/target/release/data-pipeline --download-only
+
+FROM debian:bookworm-slim
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+    ca-certificates \
+    && rm -rf /var/lib/apt/lists/*
+
+RUN groupadd -r appuser && useradd -r -g appuser appuser
+
+COPY --from=builder /app/target/release/data-pipeline /usr/local/bin/data-pipeline
+COPY --from=builder /opt/fastembed /opt/fastembed
+
+ENV EMBED_CACHE_DIR=/opt/fastembed
+
+USER appuser
+
+ENTRYPOINT ["data-pipeline"]
