@@ -1,0 +1,122 @@
+[
+  {
+    "ticket_id": "REAL-001",
+    "5w1h_output": {
+      "Who": "unknown",
+      "What": "Cannot reach Ollama from the Tailscale mesh. curl http://100.79.30.90:11434/api/",
+      "When": "unknown",
+      "Where": "unknown",
+      "Why": "unknown",
+      "How": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "",
+    "grounded": false,
+    "inference_time_sec": 163.82
+  },
+  {
+    "ticket_id": "REAL-002",
+    "5w1h_output": {
+      "Who": "unknown",
+      "What": "Grafana shows the Loki datasource as unreachable — Explore with the Loki data so",
+      "When": "unknown",
+      "Where": "unknown",
+      "Why": "unknown",
+      "How": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "",
+    "grounded": false,
+    "inference_time_sec": 163.78
+  },
+  {
+    "ticket_id": "REAL-003",
+    "5w1h_output": {
+      "Who": "unknown",
+      "What": "nginx bind failed — the nginx container exits immediately on startup with 'bind(",
+      "When": "unknown",
+      "Where": "unknown",
+      "Why": "unknown",
+      "How": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "",
+    "grounded": false,
+    "inference_time_sec": 163.89
+  },
+  {
+    "ticket_id": "REAL-004",
+    "5w1h_output": {
+      "Who": "unknown",
+      "What": "csi-nfs-controller snapshotter sidecar is flooding stderr with repeated reflecto",
+      "When": "unknown",
+      "Where": "unknown",
+      "Why": "unknown",
+      "How": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "",
+    "grounded": false,
+    "inference_time_sec": 163.82
+  },
+  {
+    "ticket_id": "REAL-005",
+    "5w1h_output": {
+      "Who": "unknown",
+      "What": "monitoring/loki (pod loki-0, worker-2): burst of level=error at 08:00-08:02Z — c",
+      "When": "unknown",
+      "Where": "unknown",
+      "Why": "unknown",
+      "How": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "",
+    "grounded": false,
+    "inference_time_sec": 163.82
+  },
+  {
+    "ticket_id": "REAL-006",
+    "5w1h_output": {
+      "Who": "unknown",
+      "What": "kube-system/kube-proxy (pod kube-proxy-mzmpj, worker-2): E0729 reflector.go:227 ",
+      "When": "unknown",
+      "Where": "unknown",
+      "Why": "unknown",
+      "How": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "",
+    "grounded": false,
+    "inference_time_sec": 163.85
+  },
+  {
+    "ticket_id": "REAL-007",
+    "5w1h_output": {
+      "Who": "unknown",
+      "What": "kube-system/csi-driver-nfs (container csi-resizer, csi-nfs-controller pod, worke",
+      "When": "unknown",
+      "Where": "unknown",
+      "Why": "unknown",
+      "How": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "",
+    "grounded": false,
+    "inference_time_sec": 164.48
+  },
+  {
+    "ticket_id": "REAL-008",
+    "5w1h_output": {
+      "Who": "unknown",
+      "What": "argocd namespace (repo-server, application-controller, argocd-server pods, worke",
+      "When": "unknown",
+      "Where": "unknown",
+      "Why": "unknown",
+      "How": "Pending SOP search"
+    },
+    "action_taken": "search_sop",
+    "result_preview": "",
+    "grounded": false,
+    "inference_time_sec": 165.24
+  }
+]
