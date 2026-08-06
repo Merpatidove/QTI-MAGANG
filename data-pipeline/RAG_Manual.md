@@ -278,8 +278,8 @@ Confidence_Tier: A
 Tags: docker, nginx, healthcheck, networking, fails-to-start
 
 ## Context
-Error Signature: `docker ps` shows the container as `unhealthy` or restarting; nginx error log reports `bind() to 0.0.0.0:80 failed (98: Address already in use)`.
-This occurs when two replicas of the same service attempt to bind the same host port simultaneously. This causes the container to fail to start or crash during initialization, typically after a `docker compose up --scale` change that was not matched by an updated port mapping.
+Error Signature: "nginx bind failed", "bind(0.0.0.0:80) failed (98: Address in use)", or `docker ps` shows the container as `unhealthy` / restarting.
+This occurs when two replicas of the same service attempt to bind the same host port simultaneously (e.g., an nginx container exiting immediately on startup). This causes the container to fail to start or crash during initialization, typically after a `docker compose up --scale` change that was not matched by an updated port mapping.
 
 ## Diagnosis
 The container process itself is fine — nginx simply cannot start because another process (an orphaned replica from a previous scale operation) is already holding the port.
@@ -755,8 +755,7 @@ Confidence_Tier: B
 Tags: kubernetes, networking, kube-proxy, control-plane, k0s, api-server
 
 ## Context
-Error Signature: `kube-proxy reflector.go:227 "Failed to watch" err="failed to list *v1.EndpointSlice / *v1.ServiceCIDR / *v1.Node: Get \"[https://10.20.20.201:6443/](https://10.20.20.201:6443/)...\": dial tcp 10.20.20.201:6443: connect: no route to host"`, repeated across multiple informers from a single worker node.
-
+Error Signature: kube-system/kube-proxy logs show `reflector.go:227 'Failed to watch' err='failed to list *v1.EndpointSlice` and `connect: no route to host`, repeated across multiple informers from a single worker node.
 Two modes: "no route to host" = the worker's network path to the k0s API server / control plane is broken (VPN/tunnel down, dropped route, or firewall blocking 10.20.20.0/24); "connection refused" = the path is fine but the k0s API server process itself is down. Compare with the other worker — if only one node fails, the problem is node-local.
 
 ## Diagnosis

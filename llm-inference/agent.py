@@ -1,6 +1,3 @@
-"""HITE — DS agent (FastAPI ReAct orchestrator). Self-contained rewrite.
-Run:  uvicorn agent:app --host 0.0.0.0 --port 8000
-"""
 import json, os, re, time
 import requests
 from typing import List
@@ -9,9 +6,7 @@ from fastapi.responses import Response
 from pydantic import BaseModel
 from prometheus_client import Counter, Histogram, generate_latest, CONTENT_TYPE_LATEST
 
-# ---------------- config ----------------
 OLLAMA_URL   = os.getenv("OLLAMA_URL", "http://127.0.0.1:11434")
-# EXACT MATCH for the Mac Mini's registered Qwen model
 OLLAMA_MODEL = os.getenv("OLLAMA_MODEL", "hf.co/stefancosma/Qwen2.5-Coder-7B-Instruct-Q4_K_M-GGUF:latest")
 OLLAMA_TIMEOUT = int(os.getenv("OLLAMA_TIMEOUT", "300"))
 TEMP = float(os.getenv("OLLAMA_TEMPERATURE", "0.8"))     
@@ -22,7 +17,6 @@ MAX_SYNTH_RETRIES = int(os.getenv("OLLAMA_SYNTH_RETRIES", "2"))
 PLACEHOLDER_HOW = "Pending SOP search"
 SIX_KEYS = ["Who", "What", "When", "Where", "Why", "How"]
 
-# ---------------- metrics (§4.1.4) ----------------
 LLM_LAT  = Histogram("qti_llm_request_duration_seconds", "LLM latency by phase", ["phase"], buckets=(1,5,15,30,60,120,300))
 TOKENS   = Counter("qti_llm_tokens_total", "Tokens by type", ["type"])
 PARSE_ERR= Counter("qti_agent_parse_errors_total", "JSON decode failures")
@@ -36,7 +30,6 @@ class Ticket(BaseModel):
     raw_text: str
     project_tags: List[str] = []
 
-# ---------------- prompts ----------------
 ANALYSIS_PROMPT = """You are HITE, an IT-support triage engine.
 Read the ticket and reply with a STRICT JSON object with exactly these keys:
 "Who","What","When","Where","Why","How","action"
@@ -58,7 +51,6 @@ Rewrite the final triage as a STRICT JSON object with EXACTLY six keys:
 - If the SOP context is empty or unusable, set "How" to exactly "{placeholder}".
 Reply with ONLY the JSON object. No prose, no code fences."""
 
-# ---------------- Ollama ----------------
 def call_ollama(prompt: str, phase: str) -> str:
     opts = {"temperature": TEMP, "num_predict": 1024}
     if SEED: opts["seed"] = int(SEED)
@@ -77,13 +69,8 @@ def call_ollama(prompt: str, phase: str) -> str:
     TOKENS.labels(type="completion").inc(float(data.get("eval_count", 0)))
     return data.get("response", "")
 
-# ---------------- JSON parsing helpers ----------------
 def _strip_fences(s: str) -> str:
-    s = s.strip()
-    if s.startswith("```"):
-        s = re.sub(r"^```[a-zA-Z]*\n?", "", s)
-        s = re.sub(r"\n?```\s*$", "", s)
-    return s.strip()
+    return s.replace("```json", "").replace("```", "").strip()
 
 def _parse_json_obj(raw: str) -> dict:
     text = _strip_fences(raw)
@@ -92,13 +79,17 @@ def _parse_json_obj(raw: str) -> dict:
         if isinstance(v, dict): return v
     except json.JSONDecodeError:
         pass
+    
     m = re.search(r"\{.*\}", text, re.DOTALL)          
     if m:
-        v = json.loads(m.group(0))
-        if isinstance(v, dict): return v
+        try:
+            v = json.loads(m.group(0))
+            if isinstance(v, dict): return v
+        except json.JSONDecodeError:
+            pass
+            
     raise ValueError("no JSON object in model output")
 
-# ---------------- synthesis retry-on-parse-failure ----------------
 def synthesize(prompt: str) -> dict:
     last = None
     for attempt in range(MAX_SYNTH_RETRIES + 1):
@@ -114,7 +105,6 @@ def synthesize(prompt: str) -> dict:
                           + "\nReply with ONLY the JSON object — no prose, no code fences.")
     raise last
 
-# ---------------- tools ----------------
 def _is_err(payload) -> bool:      
     if not isinstance(payload, dict) or not payload: return True
     fix = str(payload.get("proposed_fix") or "").strip()
@@ -133,7 +123,6 @@ def search_sop(t: Ticket):
         EMPTY_RET.inc(); return None
     return payload
 
-# ---------------- shaping / tiering ----------------
 def _norm(d: dict) -> dict:
     out = {}
     for k in SIX_KEYS:
@@ -145,7 +134,6 @@ def _norm(d: dict) -> dict:
 def _complete(d: dict) -> bool:
     return all(d.get(k) for k in SIX_KEYS)
 
-# ---------------- endpoints ----------------
 @app.post("/process-ticket")
 def process_ticket(t: Ticket):
     action, sop, analysis = "search_sop", None, {}

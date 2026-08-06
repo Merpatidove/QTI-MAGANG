@@ -2,47 +2,47 @@
   {
     "ticket_id": "REAL-001",
     "5w1h_output": {
-      "Who": "DEBIAN13, Tailscale Laptop",
+      "Who": "DEBIAN13, Tailscale laptop",
       "What": "Cannot reach Ollama from the Tailscale mesh",
-      "When": "Incident time",
-      "Where": "Mac Mini",
-      "Why": "Ollama service itself is down. Connection refused means the box and the path are UP but nothing is listening on port 11434.",
-      "How": "Pending SOP search"
+      "When": "Now",
+      "Where": "Mac Mini (wg0 subnet 10.10.10.2)",
+      "Why": "Ollama not running or not bound to the WireGuard interface",
+      "How": "On the Mac Mini, bind and start the service with OLLAMA_HOST=10.10.10.2:11434 ollama serve; then verify connection with curl http://10.10.10.2:11434/api/tags"
     },
     "action_taken": "search_sop",
-    "result_preview": "{\"proposed_fix\": \"SOP-INF-003 Ollama Unreachable over WireGuard (Connection Refused): The Mac Mini hosts Ollama (at incident time bound to the WireGuard interface, OLLAMA_HOST=10.10.10.2:11434). \\\"Con",
-    "grounded": false,
-    "inference_time_sec": 20.5
+    "result_preview": "{\"proposed_fix\": \"SOP-INF-003 Ollama Unreachable over VPN/Overlay (WireGuard / Tailscale): ## Diagnosis\\n1. `ping -c 3 10.10.10.2` \\u2014 0% loss = Mac Mini reachable (not off).\\n2. `sudo wg show wg0`",
+    "grounded": true,
+    "inference_time_sec": 23.71
   },
   {
     "ticket_id": "REAL-002",
     "5w1h_output": {
       "Who": "IT-Support",
       "What": "Loki datasource unreachable in Grafana",
-      "When": "Current time",
-      "Where": "http://loki.monitoring.svc:3100 and Loki pods",
-      "Why": "DNS resolution failure or network timeout",
-      "How": "Refer to SOP-INF-004 for troubleshooting steps"
+      "When": "Now",
+      "Where": "monitoring namespace",
+      "Why": "Pod is not ready and endpoint times out",
+      "How": "kubectl rollout restart statefulset/loki -n monitoring; restore service via Argo CD if needed; verify with port-forward"
     },
     "action_taken": "search_sop",
-    "result_preview": "{\"proposed_fix\": \"SOP-INF-004 Loki Datasource Unreachable (DNS no such host / i/o timeout): INF-004: Loki Datasource Unreachable (DNS no such host / i/o timeout)\\nSOP_ID: SOP-INF-004\\nCategory: Infras",
+    "result_preview": "{\"proposed_fix\": \"SOP-INF-004 Loki Datasource Unreachable (DNS no such host / i/o timeout): ## Remediation\\n```bash\\n# 1. Pod down/CrashLoop:\\nkubectl rollout restart statefulset/loki -n monitoring\\n\\",
     "grounded": true,
-    "inference_time_sec": 17.93
+    "inference_time_sec": 15.78
   },
   {
     "ticket_id": "REAL-003",
     "5w1h_output": {
       "Who": "HITE",
       "What": "nginx container fails to start due to port 80 already in use",
-      "When": "Nginx container starts and attempts to bind to port 80 on the host",
-      "Where": "Host where Docker is running",
-      "Why": "Another process or container on the host is using port 80, conflicting with nginx's attempt to bind to it",
+      "When": "Immediate upon startup after docker compose up",
+      "Where": "Host machine",
+      "Why": "Port 80 on the host is occupied by another process or container",
       "How": "Pending SOP search"
     },
     "action_taken": "search_sop",
-    "result_preview": "{\"proposed_fix\": \"SOP-DOC-002 Healthcheck Failing \\u2014 Port Already in Use: ## Context\\nError Signature: `docker ps` shows the container as `unhealthy`; nginx error log reports `bind() to 0.0.0.0:80",
+    "result_preview": "{\"proposed_fix\": \"SOP-DOC-002 Container Fails to Start / Healthcheck Failing \\u2014 Port Already in Use: ## Context\\nError Signature: `docker ps` shows the container as `unhealthy` or restarting; ngin",
     "grounded": false,
-    "inference_time_sec": 14.11
+    "inference_time_sec": 14.22
   },
   {
     "ticket_id": "REAL-004",
@@ -57,7 +57,7 @@
     "action_taken": "search_sop",
     "result_preview": "{\"proposed_fix\": \"SOP-INF-005 VolumeSnapshot CRDs Missing (csi-snapshotter Reflector Failing): ## Context\\nError Signature: `reflector.go:227 \\\"Failed to watch\\\" err=\\\"failed to list *v1.VolumeSnapsho",
     "grounded": true,
-    "inference_time_sec": 16.1
+    "inference_time_sec": 19.41
   },
   {
     "ticket_id": "REAL-005",
@@ -72,22 +72,22 @@
     "action_taken": "search_sop",
     "result_preview": "{\"proposed_fix\": \"SOP-K8S-002 Liveness Probe Failing (HTTP 503): ## Context\\nError Signature: a Kubernetes Warning event with reason `Unhealthy` reporting \\\"Liveness probe failed: HTTP probe failed wi",
     "grounded": true,
-    "inference_time_sec": 19.07
+    "inference_time_sec": 19.62
   },
   {
     "ticket_id": "REAL-006",
     "5w1h_output": {
       "Who": "kube-proxy on worker-2",
-      "What": "Failed to watch services and endpoint slices due to network route loss to k0s API server at 10.20.20.201",
+      "What": "Failed to watch services and endpoint slices due to network route loss to k0s API server (10.20.20.201)",
       "When": "Repeated from 2026-07-29 13:24-13:30Z",
       "Where": "worker-2",
       "Why": "Worker lost network route to the k0s API server, preventing kube-proxy's informers from listing/watching services and endpoint slices",
       "How": "Pending SOP search"
     },
     "action_taken": "search_sop",
-    "result_preview": "{\"proposed_fix\": \"SOP-INF-006 Worker Lost Route to Control Plane (API Server Unreachable): ## Context\\nError Signature: `kube-proxy reflector.go:227 \\\"Failed to watch\\\" err=\\\"failed to list *v1.Endpoi",
+    "result_preview": "{\"proposed_fix\": \"SOP-INF-006 Worker Lost Route to Control Plane (k0s API Server Unreachable): ## Context\\nError Signature: `kube-proxy reflector.go:227 \\\"Failed to watch\\\" err=\\\"failed to list *v1.En",
     "grounded": false,
-    "inference_time_sec": 18.09
+    "inference_time_sec": 19.69
   },
   {
     "ticket_id": "REAL-007",
@@ -102,21 +102,21 @@
     "action_taken": "search_sop",
     "result_preview": "{\"proposed_fix\": \"SOP-INF-007 etcd Request Timeout During Leader Election: INF-007: etcd Request Timeout During Leader Election\\nSOP_ID: SOP-INF-007\\nCategory: Infrastructure\\nConfidence_Tier: B\\nTags",
     "grounded": true,
-    "inference_time_sec": 16.39
+    "inference_time_sec": 16.57
   },
   {
     "ticket_id": "REAL-008",
     "5w1h_output": {
-      "Who": "IT-Support Team",
-      "What": "Argo CD components failing to reach Redis",
+      "Who": "Argo CD components",
+      "What": "Repeatedly failing to reach Redis at 10.99.87.5:6379",
       "When": "2026-08-01 11:33-11:43Z",
-      "Where": "argocd namespace (repo-server, application-controller, argocd-server pods, worker-1)",
-      "Why": "Failed to establish Redis connection due to 'i/o timeout'",
-      "How": "Pending SOP search"
+      "Where": "Namespace (repo-server, application-controller, argocd-server pods, worker-1)",
+      "Why": "Redis pod or its Service/Endpoints unreachable",
+      "How": "SOP-INF-008 Argo CD Components Failing to Reach Redis (Unreachable / Timeout): Every component failing to reach the same ClusterIP points to the redis pod or its Service/Endpoints, not to individual components."
     },
     "action_taken": "search_sop",
-    "result_preview": "{\"proposed_fix\": \"SOP-INF-008 Argo CD Redis Unreachable: INF-008: Argo CD Redis Unreachable\\nSOP_ID: SOP-INF-008\\nCategory: Infrastructure\\nConfidence_Tier: B\\nTags: argocd, redis, gitops, caching\\n\\n",
-    "grounded": false,
-    "inference_time_sec": 18.96
+    "result_preview": "{\"proposed_fix\": \"SOP-INF-008 Argo CD Components Failing to Reach Redis (Unreachable / Timeout): Argo CD's caching layer (`argocd-redis` at 10.99.87.5:6379) is unreachable, so Argo CD components are f",
+    "grounded": true,
+    "inference_time_sec": 16.31
   }
 ]
