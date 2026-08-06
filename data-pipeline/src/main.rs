@@ -42,31 +42,25 @@ fn main() -> Result<()> {
 
     let mut sops = Vec::new();
     let mut current_block = String::new();
+    let mut in_fence = false;
 
     for line in content.lines() {
-        // Detect top-level H1 headers (starts with "# " but NOT "## ")
-        let is_h1 = line.starts_with("# ") && !line.starts_with("## ");
+        let trimmed = line.trim();
+        if trimmed.starts_with("```") { in_fence = !in_fence; }
 
-        if line.starts_with("# SOP-") {
-            if !current_block.is_empty() {
-                sops.push(current_block);
-            }
+        if !in_fence && line.starts_with("# SOP-") {
+            if !current_block.is_empty() { sops.push(current_block); }
             current_block = line.trim_start_matches("# SOP-").to_string();
-        } else if is_h1 {
-            // Hit a non-SOP H1 header (like "# Category: ..." or the Appendix)
-            // Terminate the current SOP block so this text doesn't bleed into the chunks
-            if !current_block.is_empty() {
-                sops.push(current_block);
-                current_block = String::new();
-            }
+        } else if !in_fence && line.starts_with("# ") && !line.starts_with("## ") {
+            if !current_block.is_empty() { sops.push(current_block); current_block = String::new(); }
+        } else if !in_fence && trimmed == "---" {
+            if !current_block.is_empty() { sops.push(current_block); current_block = String::new(); }
         } else if !current_block.is_empty() {
             current_block.push('\n');
             current_block.push_str(line);
         }
     }
-    if !current_block.is_empty() {
-        sops.push(current_block);
-    }
+    if !current_block.is_empty() { sops.push(current_block); }
 
     println!("✅ Found {} SOP entries.", sops.len());
 
@@ -77,29 +71,21 @@ fn main() -> Result<()> {
     let mut points = Vec::new();
     for block in &sops {
         let first_line = block.lines().next().unwrap_or("");
-        
-        // 1. Extract the new explicit metadata fields
         let sop_id_meta = field(block, "SOP_ID");
         let category = field(block, "Category");
         let tier = field(block, "Confidence_Tier");
         let tags_str = field(block, "Tags");
 
-        // 2. Fallback parsing from the title line just in case metadata is missing
         let (fallback_id, title) = match first_line.split_once(": ") {
             Some((i, t)) => (format!("SOP-{}", i.trim()), t.trim().to_string()),
             None => (first_line.trim().to_string(), "Untitled".to_string()),
         };
-
         let final_sop_id = if sop_id_meta != "unknown" { sop_id_meta } else { fallback_id };
         let final_category = if category != "unknown" { category } else { "unknown".to_string() };
         let final_tier = if tier != "unknown" { tier } else { "unknown".to_string() };
-        
-        // 3. Split tags into a clean array for Qdrant payload filtering
         let final_tags: Vec<String> = if tags_str != "unknown" {
             tags_str.split(',').map(|s| s.trim().to_string()).collect()
-        } else {
-            vec![]
-        };
+        } else { vec![] };
 
         let chunks = chunk_text(block, MAX_CHUNK_CHARS);
         let texts: Vec<String> = chunks.iter()
@@ -111,12 +97,8 @@ fn main() -> Result<()> {
                 "id": Uuid::new_v4().to_string(),
                 "vector": vec,
                 "payload": {
-                    "text": txt,
-                    "sop_id": final_sop_id,
-                    "title": title,
-                    "category": final_category,
-                    "tier": final_tier,
-                    "tags": final_tags
+                    "text": txt, "sop_id": final_sop_id, "title": title,
+                    "category": final_category, "tier": final_tier, "tags": final_tags
                 }
             }));
         }
@@ -126,25 +108,40 @@ fn main() -> Result<()> {
 
     let client = reqwest::blocking::Client::new();
 
-    // ---- RESET COLLECTION ----
-    println!("🗑️  Resetting collection {} ...", COLLECTION);
-    let _ = client.delete(format!("{}/collections/{}", QDRANT_URL, COLLECTION)).send();
-    let create_resp = client
-        .put(format!("{}/collections/{}", QDRANT_URL, COLLECTION))
-        .json(&json!({
-            "vectors": {
-                "size": 384,
-                "distance": "Cosine"
+    // ---- SMART RESET: only reset if the collection actually has data ----
+    let mut state = "missing";
+    if let Ok(resp) = client.get(format!("{}/collections/{}", QDRANT_URL, COLLECTION)).send() {
+        if resp.status().is_success() {
+            let body = resp.text().unwrap_or_default();
+            if let Ok(v) = serde_json::from_str::<serde_json::Value>(&body) {
+                let c = v["result"]["points_count"].as_u64().unwrap_or(0);
+                state = if c > 0 { "hasdata" } else { "empty" };
             }
-        }))
-        .send()
-        .context("failed to recreate collection")?;
-    if !create_resp.status().is_success() {
-        anyhow::bail!("Failed to create collection: {}", create_resp.text().unwrap_or_default());
+        }
     }
-    println!("✅ Collection recreated (384-dim, Cosine).");
+    println!("🔎 Collection state: {}.", state);
 
-    // ---- UPSERT IN BATCHES ----
+    if state == "hasdata" {
+        println!("🗑️  Collection has data — resetting ...");
+        let _ = client.delete(format!("{}/collections/{}", QDRANT_URL, COLLECTION)).send();
+        std::thread::sleep(std::time::Duration::from_secs(3));
+        state = "missing";
+    }
+    if state == "missing" {
+        println!("🏗️  Creating collection ...");
+        let create_resp = client
+            .put(format!("{}/collections/{}", QDRANT_URL, COLLECTION))
+            .json(&json!({ "vectors": { "size": 384, "distance": "Cosine" } }))
+            .send()
+            .context("failed to create collection")?;
+        if !create_resp.status().is_success() {
+            anyhow::bail!("Failed to create collection: {}", create_resp.text().unwrap_or_default());
+        }
+        println!("✅ Collection ready (384-dim, Cosine).");
+    } else {
+        println!("✅ Collection exists and is empty — skipping the heavy reset, upserting directly.");
+    }
+
     println!("⬆️  Upserting to {} in batches ...", QDRANT_URL);
     let batch_size = 32;
     for (i, batch) in points.chunks(batch_size).enumerate() {
