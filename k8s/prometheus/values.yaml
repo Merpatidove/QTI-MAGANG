@@ -1,10 +1,9 @@
 # ========================================================
-# KUBE-PROMETHEUS-STACK PRODUCTION CONFIGURATION
+# KUBE-PROMETHEUS-STACK PRODUCTION CONFIGURATION (OPTIMIZED)
 # ========================================================
 
 # 1. ALERTMANAGER
-# Dinonaktifkan untuk menghemat RAM (±500MB). 
-# Aktifkan kembali di masa depan jika sudah butuh sistem notifikasi.
+# Dinonaktifkan untuk hemat resource (aktifkan jika butuh notifikasi Slack/Email)
 alertmanager:
   enabled: false
 
@@ -12,14 +11,13 @@ alertmanager:
 prometheus:
   prometheusSpec:
     # --- PERBAIKAN NFS PERMISSION ---
-    # Menghindari bentrok permission (chown) pada NFS Storage
     securityContext:
       fsGroup: 1000
       runAsUser: 1000
       runAsGroup: 1000
       runAsNonRoot: true
 
-    # Memastikan pod hanya berjalan di worker, tidak di controller (VM Ferdi)
+    # Memastikan pod hanya berjalan di worker node
     affinity:
       nodeAffinity:
         requiredDuringSchedulingIgnoredDuringExecution:
@@ -31,12 +29,11 @@ prometheus:
                     - worker-1
                     - worker-2
 
-    # Pengaturan Offline-Ready & Efisiensi
     imagePullPolicy: IfNotPresent
 
-    # RETENSI JANGKA PANJANG (Efisiensi Disk)
-    retention: 7d
-    retentionSize: "10GiB"
+    # RETENSI DITINGKATKAN (Dapat menyimpan data 14 hari)
+    retention: 14d
+    retentionSize: "25GiB"
 
     # PENYIMPANAN PERMANEN (NFS)
     storageSpec:
@@ -46,23 +43,22 @@ prometheus:
           accessModes: ["ReadWriteOnce"]
           resources:
             requests:
-              storage: 12Gi
+              storage: 30Gi
 
-    # PEMBATASAN RESOURCE (Mencegah OOM Killer)
+    # PEMBATASAN RESOURCE (Dinaikkan agar stabil untuk RAM 32GB)
     resources:
       requests:
-        memory: "500Mi"
-        cpu: "250m"
+        memory: "1Gi"
+        cpu: "500m"
       limits:
-        memory: "1500Mi"
-        cpu: "1000m"
+        memory: "4Gi"
+        cpu: "2000m"
 
 # 3. GRAFANA
 grafana:
   image:
     pullPolicy: IfNotPresent
 
-  # Memastikan pod berjalan di worker
   affinity:
     nodeAffinity:
       requiredDuringSchedulingIgnoredDuringExecution:
@@ -81,23 +77,23 @@ grafana:
     type: pvc
     accessModes:
       - ReadWriteOnce
-    size: 2Gi
+    size: 5Gi
 
-  # PEMBATASAN RESOURCE
+  # PEMBATASAN RESOURCE GRAFANA
   resources:
     requests:
-      memory: "150Mi"
-      cpu: "100m"
+      memory: "250Mi"
+      cpu: "200m"
     limits:
-      memory: "300Mi"
-      cpu: "300m"
+      memory: "1Gi"
+      cpu: "1000m"
 
   # AKSES EKSTERNAL
   service:
     type: NodePort
     nodePort: 30000
 
-# 4. NODE EXPORTER (Ringan)
+# 4. NODE EXPORTER
 prometheus-node-exporter:
   resources:
     limits:
