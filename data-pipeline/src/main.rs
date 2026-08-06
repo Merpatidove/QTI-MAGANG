@@ -44,11 +44,21 @@ fn main() -> Result<()> {
     let mut current_block = String::new();
 
     for line in content.lines() {
+        // Detect top-level H1 headers (starts with "# " but NOT "## ")
+        let is_h1 = line.starts_with("# ") && !line.starts_with("## ");
+
         if line.starts_with("# SOP-") {
             if !current_block.is_empty() {
                 sops.push(current_block);
             }
             current_block = line.trim_start_matches("# SOP-").to_string();
+        } else if is_h1 {
+            // Hit a non-SOP H1 header (like "# Category: ..." or the Appendix)
+            // Terminate the current SOP block so this text doesn't bleed into the chunks
+            if !current_block.is_empty() {
+                sops.push(current_block);
+                current_block = String::new();
+            }
         } else if !current_block.is_empty() {
             current_block.push('\n');
             current_block.push_str(line);
